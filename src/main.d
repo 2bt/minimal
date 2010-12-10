@@ -9,6 +9,7 @@ import std.gc;
 
 import src.golf;
 import src.golfobject;
+import src.log;
 
 extern (C) {
 	int		SDL_Init(uint flags);
@@ -54,6 +55,8 @@ class Synth {
 	enum { MIXRATE = 48000, BUFFERLENGTH = 1024 }
 
 	string			path;
+	SoundLog		log;
+
 	Golf			golf;
 	Channel[int]	channels;
 	Channel			chan;
@@ -78,7 +81,7 @@ class Synth {
 		50		pulse
 	";
 
-	this(string filename) {
+	this(string filename, bool logging=false) {
 		golf = new Golf;
 		golf.userdata = cast(void*) this;
 
@@ -149,25 +152,32 @@ class Synth {
 			s.chan.pulsewidth = golf.pop.getNumber / 100.0;
 		});
 
+
 		writefln("loading...");
 		golf.exec(default_settings);
+
 		path = std.path.getDirName(filename);
 		string code = cast(string) read(filename);
 		golf.exec(code);
 
+		if(logging) {
+			string l = std.path.getBaseName(std.path.getName(filename)) ~ ".aiff";
+			log = new SoundLog(l);
+		}
+
 		auto spec = SDL_AudioSpec(MIXRATE, 0x8010, 2, 0,
 			BUFFERLENGTH, 0, 0, &fill_buffer, cast(void*) this);
-
 		SDL_Init(16);
 		SDL_OpenAudio(&spec, null);
 		writefln("playing...");
-//		fullCollect;
 		SDL_PauseAudio(0);
 	}
 
 	~this() {
 		SDL_Quit();
 		golf.exec("\"stack: \"print]`(;);puts");
+		delete golf;
+		delete log;
 	}
 
 	void mix(out float left, out float right) {
@@ -255,8 +265,11 @@ class Synth {
 		float l, r;
 		for(int m = 0; m < len >> 2; m++, buffer += 2) {
 			synth.mix(l, r);
-			buffer[0] = cast(short)(l * 5000);
-			buffer[1] = cast(short)(r * 5000);
+			buffer[0] = cast(short)(l * 6000);
+			buffer[1] = cast(short)(r * 6000);
+			// logging
+			if(synth.log)
+				synth.log.write(buffer[0], buffer[1]);
 		}
 	}
 }
@@ -268,7 +281,7 @@ void main(string[] args) {
 		writefln("usage: %s filename", args[0]);
 		return;
 	}
-	auto synth = new Synth(args[1]);
+	auto synth = new Synth(args[1], true);
 	readln;
 	delete synth;
 }
