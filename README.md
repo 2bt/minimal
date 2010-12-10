@@ -1,8 +1,14 @@
 Minimal
 =======
 
+### What's That? ###
+
 Minimal is a very basic software synthesizer controllable via
-[gofscript](http://www.golfscript.com/golfscript/index.html).
+[golfscript](http://www.golfscript.com/golfscript/index.html).
+
+Try it out:
+	$ make
+	$ ./minimal tunes/esteem.gs
 
 
 ### Built-ins ###
