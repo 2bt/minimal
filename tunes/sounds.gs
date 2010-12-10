@@ -1,4 +1,4 @@
-"std.gs" require
+"std/std.gs" require
 
 # player
 0 : count ;

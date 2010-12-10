@@ -1,4 +1,4 @@
-"std.gs" require
+"std/std.gs" require
 
 8		: ticks_per_row ;
 750		frame
@@ -127,13 +127,8 @@
 
 [
 	{
-		{
-			[	10 . 8 . 6 . 4 . 2 . 0 . -2 . -4 . -6 . -8 .
-				-10 . -8 . -6 . -4 . -2 . 0 . 2 . 4 . 6 . 8 .
-			] {2*{panning}+} % m_loop
-
+		{ 30,{15-..}%.{~)}%+{2*{panning}+}%m_loop	# wtf
 		  play C_4 pitch } { }
-
 		{ play D_4 pitch } { }
 		{ play Ds4 pitch } { }
 		{ play G_4 pitch } { }
@@ -170,14 +165,18 @@
 		;;; { play As2 pitch } { stop } { }
 ] : bass1 ;
 
-
-[{}] 128 * : _ ;
+[{}]128*:_;
 
 [
 	[ sub_bass1	_		_			_		_		]
 	[ sub_bass1	_		_			beat1	_		]
 	[ sub_bass1	_		percussion1	beat1	bass1	] .
 	[ sub_bass1	pad1	percussion1	beat1	bass1	] .
+	[ sub_bass1	pad1	_			_		bass1	] .
+	[ sub_bass1 [{}]8* ] [ [{}]24* ]
 ] : patterns ;
+
+
+
 
 
