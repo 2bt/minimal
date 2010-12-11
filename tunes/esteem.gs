@@ -3,6 +3,9 @@
 8		: ticks_per_row ;
 750		frame
 
+####### beat #######
+
+
 3		channel
 80		volume
 
@@ -32,7 +35,7 @@
 			19		release
 			play
 		  3 wave C_7 pitch }
-		{ }
+		{}
 		{ 0 wave G_3 pitch }
 		{ 0 wave F_3 pitch }
 		{ 0 wave E_3 pitch }
@@ -55,24 +58,25 @@
 	{
 		{ beat }
 		{ hat }
-		{ }
+		{}
 		{ hat }
 		{ snare }
-		{ }
+		{}
 		{ hat }
 		{ beat }
 		{ hat }
 		{ beat }
 		{ hat }
-		{ }
+		{}
 		{ snare }
-		{ }
-		{ }
+		{}
+		{}
 		{ hat }
 			} 4 *
 	;; { beat } { beat }
 ] : beat1 ;
 
+####### percussion #######
 
 2		channel
 50		volume
@@ -81,11 +85,14 @@
 0		sustain
 
 [	{ play 40 panning [C_4 C_4 C_5 C_5] m_arpeggio }
-	{ { } } 15 *
+	{ {} } 15 *
 	{ play -40 panning [C_2 C_2 C_3 C_3] m_arpeggio }
-	{ { } } 15 *
+	{ {} } 15 *
 
 ] {{}}% : percussion1 ;
+
+
+####### sub_bass #######
 
 
 0		channel
@@ -97,25 +104,25 @@
 [
 	{
 		{ play 10 pulse [ C_2 G_2 C_3 G_3 ] m_arpeggio }
-		{ }
-		{ }
-		{ }
+		{}
+		{}
+		{}
 			} 3 *
 
 	{ play [ C_2 G_2 C_3 G_3 ] m_arpeggio }
-	{ }
+	{}
 	{ play 3 pulse [ G_1 D_2 G_2 D_3 ] m_arpeggio }
-	{ }
+	{}
 
 	{
 		{ play 10 pulse [ C_2 G_2 C_3 G_3 ] m_arpeggio }
-		{ }
-		{ }
-		{ }
+		{}
+		{}
+		{}
 			} 4 *
 ] {{}}% : sub_bass1 ;
 
-
+####### pad #######
 
 1		channel
 1		wave
@@ -128,24 +135,27 @@
 [
 	{
 		{ 30,{15-..}%.{~)}%+{2*{panning}+}%m_loop	# wtf
-		  play C_4 pitch } { }
-		{ play D_4 pitch } { }
-		{ play Ds4 pitch } { }
-		{ play G_4 pitch } { }
-		{ play As4 pitch } { }
-		{ play G_4 pitch } { }
-		{ play Ds4 pitch } { }
-		{ play D_4 pitch } { }
+		  play C_4 pitch } {}
+		{ play D_4 pitch } {}
+		{ play Ds4 pitch } {}
+		{ play G_4 pitch } {}
+		{ play As4 pitch } {}
+		{ play G_4 pitch } {}
+		{ play Ds4 pitch } {}
+		{ play D_4 pitch } {}
 			} 3 *
-	{ play C_4 pitch } { }
-	{ play D_4 pitch } { }
-	{ play Ds4 pitch } { }
-	{ play G_4 pitch } { }
-	{ play As4 pitch } { }
-	{ play G_4 pitch } { }
-	{ play Ds4 pitch } { }
+	{ play C_4 pitch } {}
+	{ play D_4 pitch } {}
+	{ play Ds4 pitch } {}
+	{ play G_4 pitch } {}
+	{ play As4 pitch } {}
+	{ play G_4 pitch } {}
+	{ play Ds4 pitch } {}
 	{ play } { play D_4 pitch }
 ] : pad1 ;
+
+
+####### bass #######
 
 
 4		channel
@@ -153,19 +163,23 @@
 10		release
 [
 	{
-		{ }
+		{}
 		{ play C_2 pitch }
 		{ stop }
 		{ play C_2 pitch }
 		{ stop }
-		{ }
-		{ }
-		{ }
+		{}
+		{}
+		{}
 			} 8 *
-		;;; { play As2 pitch } { stop } { }
+		;;; { play As2 pitch } { stop } {}
 ] : bass1 ;
 
-[{}]128*:_;
+
+####### patterns #######
+
+{ [ {} ] * }	: rows;
+128 rows		: _ ;
 
 [
 	[ sub_bass1	_		_			_		_		]
@@ -173,7 +187,8 @@
 	[ sub_bass1	_		percussion1	beat1	bass1	] .
 	[ sub_bass1	pad1	percussion1	beat1	bass1	] .
 	[ sub_bass1	pad1	_			_		bass1	] .
-	[ sub_bass1 [{}]8* ] [ [{}]24* ]
+	[ sub_bass1 _		8 rows		_		_		]
+	[ _			_		24 rows		_		_		]
 ] : patterns ;
 
 

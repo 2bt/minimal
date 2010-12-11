@@ -7,20 +7,21 @@
 # generate note names
 [ "C_CsD_DsE_F_FsG_GsA_AsB_" 2 / 12 * 120 , ] zip { . 1 = 16 * \ ~ 12 / + { : } \ + ~ ; } /
 
-# new player
+####### player #######
 4 : ticks_per_row ;
 [] : macros : macro_states ;
 0 : pattern_count : row_count : tick_count ;
 {
-	# initialize macros
-	macros !
-	{	patterns { , } % max .
-		[ { } ] * : macros ;
-		[ [ ] ] * : macro_states ;
-	} *
 
 	tick_count !
 	{
+		# initialize macros
+		patterns { , } % max .
+		macros , > {
+			. [ {} ] * : macros ;
+			. [ [] ] * : macro_states ;
+		} * ;
+
 		patterns pattern_count = .
 		. , , [ \ [macro_states macros] zip \ { row_count = } % ] zip
 		{ ( channel ~ ~ } %
@@ -41,9 +42,43 @@
 
 } : tick ;
 
-# macros
-{[\\]\;}									: macro ;
+
+
+####### macros #######
+{[\\]\;} : macro ;
+
+{[]{}macro}									: m_none ;
+
 {{.,!!{(~}*}macro}							: m_do ;
+
 {{(.~`"[]"1/\*~+}macro}						: m_loop ;
-{.,ticks_per_row\/("."*{}+%{(.pitch+}macro}	: m_arpeggio ;
+
+{
+	.,ticks_per_row\/("."*{}+%{(.pitch+}
+	macro
+}						: m_arpeggio ;		# [ pitch ... ]
+
+
+{	{
+		[~.@+\]
+		.~;<{[~;;.0]}*
+		.1=pitch
+	} macro
+}						: m_pitch_up ; 		# [ target_pitch source_pitch speed ]
+
+
+{	{
+		[~.@+\]
+		.~;>{[~;;.0]}*
+		.1=pitch
+	} macro
+}						: m_pitch_down ;	# [ target_pitch source_pitch speed ]
+
+
+{	0 + {
+		)\.2=@++...3=sin\1=*1000/\0=+pitch
+	} macro
+}						: m_vibrato ;		# [ pitch amplitude speed ]
+
+
 

@@ -560,6 +560,11 @@ class Golf {
 		});
 		table["puts"] = Value(null, new GolfObject(BLOCK, "print n print"));
 		table["p"] = Value(null, new GolfObject(BLOCK, "`puts"));
+		table["sin"] = Value((Golf golf) {
+			float n = std.math.sin(golf.pop.getNumber / 360.0) * 1000;
+			golf.stack ~= new GolfObject(cast(Number) n);
+		});
+
 	}
 }
 
