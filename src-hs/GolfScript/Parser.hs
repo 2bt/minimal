@@ -23,6 +23,7 @@ golfCode = golfAssign <|>
            golfComment <|>
            golfToken
 golfAssign = do char ':'
+                many $ oneOf " \t"
                 GolfToken token <- golfToken
                 return $ GolfAssign token
 golfNumber = GolfNumber <$> read <$> many1 digit
