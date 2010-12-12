@@ -302,6 +302,5 @@ run' (GolfArray vs) = do vm <- get
                          vmPush $ GolfArray stack'
 run' v = vmPush v
 
-runCode :: [GolfValue] -> IO [GolfValue]
-runCode code = vmStack <$>
-               execStateT (run code) newVM
+exec :: VM -> [GolfValue] -> IO VM
+exec vm code = execStateT (run code) vm
