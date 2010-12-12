@@ -535,24 +535,29 @@ class Golf {
 		table["zip"] = Value((Golf golf) {
 			auto a = golf.pop;
 			if(a.type != ARRAY) throw new Exception("invalid operation");
+
 			if(a.array.length == 0) {
 				golf.stack ~= a;
 				return;
 			}
+
 			foreach(elem; a.array)
 				if(elem.type == NUMBER) throw new Exception("invalid operation");
+
 			int len = a.array[0].array.length;
 			int type = a.type;
 			foreach(elem; a.array[1 .. $]) {
 				len = min!(int)(len, elem.array.length);
 				type = min(type, elem.type);
 			}
+
 			auto ar = new GolfObject[len];
 			foreach(i, ref elem; ar) {
 				auto q = new GolfObject[a.array.length];
 				foreach(j, ref go; q) go = a.array[j].array[i];
 				elem = new GolfObject(type, q);
 			}
+
 			golf.stack ~= new GolfObject(ARRAY, ar);
 		});
 		table["print"] = Value((Golf golf) {

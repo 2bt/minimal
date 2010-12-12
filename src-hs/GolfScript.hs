@@ -35,6 +35,9 @@ instance Show GolfValue where
   show (GolfToken token) = token
   show (GolfBlock vs) = "{" ++ concatMap show vs ++ "}"
   
+isFalse :: GolfValue -> Bool
+isFalse = (`elem` [GolfNumber 0, GolfArray [], GolfString "", GolfBlock []])
+  
 instance Eq (Interpreter a) where
   _ == _ = True
 instance Ord (Interpreter a) where
@@ -91,8 +94,8 @@ coerced = do b <- vmPop
              return $ coerceTogether a b
 
 ordered :: Interpreter (GolfValue, GolfValue)
-ordered = do a <- vmPop
-             b <- vmPop
+ordered = do b <- vmPop
+             a <- vmPop
              case a < b of
                True ->
                  return (b, a)
@@ -138,6 +141,23 @@ vmMinus = do (a, b) <- coerced
                (GolfString a', GolfString b') ->
                  GolfString $ filter (`elem` b') a'
 
+vmDiv = do (a, b) <- ordered
+           vmPush $ case (a, b) of
+             (GolfNumber a', GolfNumber b') ->
+               GolfNumber $ a' `div` b'
+             (GolfArray a', GolfNumber b') ->
+               let r vs = if length vs > b'
+                          then let (vs', vs'') = splitAt b' vs
+                               in (GolfArray vs') : (r vs'')
+                          else [GolfArray vs]
+               in GolfArray $ r a'
+             (GolfString a', GolfNumber b') ->
+               let r vs = if length vs > b'
+                          then let (vs', vs'') = splitAt b' vs
+                               in (GolfString vs') : (r vs'')
+                          else [GolfString vs]
+               in GolfArray $ r a'
+
 vmTilde = do v <- vmPop
              case v of
                GolfNumber n ->
@@ -166,6 +186,23 @@ vmSwap = do a <- vmPop
             vmPush a
             vmPush b
 
+vmComma = do a <- vmPop
+             case a of
+               GolfNumber a' ->
+                 vmPush $ GolfArray $ map GolfNumber [0..(a' - 1)]
+               GolfArray a' ->
+                 vmPush $ GolfNumber $ length a'
+               GolfBlock a' ->
+                 do b <- vmPop
+                    case b of
+                      GolfArray b' ->
+                        do b'' <- filterM (\v ->
+                                            do vmPush v
+                                               run a'
+                                               isFalse <$> vmPop
+                                          ) b'
+                           vmPush $ GolfArray b''
+
 --vmDiv = GolfBuiltin $
 
 {-vmMod = GolfBuiltin $
@@ -184,9 +221,7 @@ vmSwap = do a <- vmPop
 vmDoWhile = do GolfBlock vs <- vmPop
                let run = do mapM_ run' vs
                             v <- vmPop
-                            case v of
-                              GolfNumber 0 -> return ()
-                              _ -> run
+                            unless (isFalse v) run
                run
 
 vmRequire = do GolfString fn <- vmPop
@@ -194,12 +229,16 @@ vmRequire = do GolfString fn <- vmPop
                run vs
                
 vmZip = do vm <- get
-           liftIO $ putStrLn $ "stack: " ++ show (vmStack vm)
-           GolfArray a <- vmPop
-           let a' = map (\(GolfArray a') -> a') a
-               a'' = transpose a'
-               a''' = map GolfArray a''
-           vmPush $ GolfArray a'''
+           liftIO $ putStrLn $ "stack: " ++ show (GolfBlock $ vmStack vm)
+           v <- vmPop
+           case v of
+             GolfArray a ->
+               do let a' = map (\(GolfArray a') -> a') a
+                      a'' = transpose a'
+                      a''' = map GolfArray a''
+                  vmPush $ GolfArray a'''
+             _ ->
+               error $ "Cannot zip " ++ show v
 
 newVM :: VM
 newVM = VM { vmStack = [],
@@ -209,11 +248,13 @@ newVM = VM { vmStack = [],
                                     ("\n", stub),
                                     ("+", GolfBuiltin vmPlus),
                                     ("-", GolfBuiltin vmMinus),
+                                    ("/", GolfBuiltin vmDiv),
                                     ("~", GolfBuiltin vmTilde),
                                     (".", GolfBuiltin vmDup),
                                     ("@", GolfBuiltin vmRotate),
                                     ("\\", GolfBuiltin vmSwap),
-                                    (";", GolfBuiltin $ vmDiscard),
+                                    (";", GolfBuiltin vmDiscard),
+                                    (",", GolfBuiltin vmComma),
                                     ("do", GolfBuiltin vmDoWhile),
                                     ("n", GolfString "\n"),
                                     ("h", GolfString "Hello, World"),
