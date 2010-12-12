@@ -176,24 +176,26 @@ vmComma = do a <- vmPop
                    vmPush $ GolfNumber $ b' `mod` a'-}
 
 vmDoWhile = do GolfBlock vs <- vmPop
-               let run = do mapM_ run' vs
-                            v <- vmPop
-                            unless (isFalse v) run
-               run
+               let r = do run vs
+                          v <- vmPop
+                          unless (isFalse v) r
+               r
 
 vmRequire = do GolfString fn <- vmPop
                vs <- liftIO $ parseFile fn
                run vs
                
 vmZip = do vm <- get
-           liftIO $ putStrLn $ "stack: " ++ concatMap serialize (vmStack vm)
            v <- vmPop
            case v of
              GolfArray a ->
                do let a' = map (\(GolfArray a') -> a') a
-                      a'' = transpose a'
-                      a''' = map GolfArray a''
-                  vmPush $ GolfArray a'''
+                      minLen = minimum $ map length a'
+                      a'' = map (take minLen) a'
+                      a''' = transpose a''
+                      a'''' = map GolfArray a'''
+                  liftIO $ putStrLn $ "zip " ++ show a ++ " = " ++ show a''''
+                  vmPush $ GolfArray a''''
              _ ->
                error $ "Cannot zip " ++ show v
 
