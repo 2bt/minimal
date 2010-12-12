@@ -155,7 +155,6 @@ vmGreater = do (a, b) <- ordered
                      vmPush $ golfFromBool $ a' > b'
 
 vmTilde = do v <- vmPop
-             liftIO $ putStrLn $ "~ " ++ show v
              case v of
                GolfNumber n ->
                  vmPush $ GolfNumber $ complement n
@@ -235,7 +234,6 @@ vmZip = do vm <- get
                       a'' = map (take minLen) a'
                       a''' = transpose a''
                       a'''' = map GolfArray a'''
-                  liftIO $ putStrLn $ "zip " ++ show a ++ " = " ++ show a''''
                   vmPush $ GolfArray a''''
              _ ->
                error $ "Cannot zip " ++ show v

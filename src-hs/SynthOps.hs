@@ -3,6 +3,7 @@ module SynthOps where
 import Control.Monad.State.Lazy
 import Data.IORef
 import Data.Array
+import Debug.Trace
 
 import GolfScript.Value
 import GolfScript.Interpreter
@@ -24,8 +25,8 @@ boot s = GolfBuiltin $
                   synthCall identifier $ \synth ->
                   do let channels = synthChannels synth
                          idx = synthChannelIndex synth
-                         channel = channels ! idx
-                     liftIO $ putStrLn $ "channel: " ++ show idx ++ "\nchannel: " ++ show channel
+                         channel = trace ("channel: " ++ show idx ++ "\nchannel: " ++ show channel) $
+                                   channels ! idx
                      channel' <- f channel
                      return $ synth { synthChannels = channels // [(idx, channel')] }
                      
