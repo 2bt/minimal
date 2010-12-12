@@ -4,6 +4,7 @@ import Control.Monad.State.Lazy
 import qualified Data.Map as Map
 import Data.Bits (complement)
 import Data.List (transpose)
+import Data.Char (ord)
 import Control.Applicative
 import GolfScript.Value
 import GolfScript.Parser
@@ -67,6 +68,10 @@ vmPlus = do (a, b) <- coerced
                 GolfArray $ a' ++ b'
               (GolfString a', GolfString b') ->
                 GolfString $ a' ++ b'
+              (GolfBlock a', GolfBlock b') ->
+                GolfBlock $ a' ++ b'
+              _ ->
+               error $ "Cannot plus " ++ show a ++ " & " ++ show b
               
 vmMinus = do (a, b) <- coerced
              vmPush $ case coerceTogether a b of
@@ -82,6 +87,11 @@ vmMul = do (a, b) <- ordered
              (GolfArray a', GolfNumber b') ->
                vmPush $ GolfArray $
                take (length a' * b') $ cycle a'
+             (GolfString a', GolfNumber b') ->
+               vmPush $ GolfString $
+               take (length a' * b') $ cycle a'
+             _ ->
+               error $ "Cannot mul " ++ show a ++ " & " ++ show b
 
 vmDiv = do (a, b) <- ordered
            case (a, b) of
@@ -110,17 +120,32 @@ vmDiv = do (a, b) <- ordered
 vmEq = do (a, b) <- ordered
           case (a, b) of
             (GolfNumber a', GolfNumber b') ->
-              vmPush $ GolfNumber $
-              if a' == b'
-              then 1
-              else 0
+              vmPush $ golfFromBool $ a' == b'
+            (GolfString a', GolfNumber b')
+              | b' < length a' ->
+                vmPush $ GolfNumber $ ord $ a' !! b'
+              | otherwise ->
+                return ()
             (GolfArray a', GolfNumber b')
               | b' < length a' ->
                 vmPush $ a' !! b'
               | otherwise ->
                 return ()
+            _ ->
+                error $ "Cannot eq " ++ show a ++ " & " ++ show b
+
+vmLess = do (a, b) <- ordered
+            case (a, b) of
+              (GolfNumber a', GolfNumber b') ->
+                vmPush $ golfFromBool $ a' < b'
+
+vmGreater = do (a, b) <- ordered
+               case (a, b) of
+                 (GolfNumber a', GolfNumber b') ->
+                     vmPush $ golfFromBool $ a' > b'
 
 vmTilde = do v <- vmPop
+             liftIO $ putStrLn $ "~ " ++ show v
              case v of
                GolfNumber n ->
                  vmPush $ GolfNumber $ complement n
@@ -164,7 +189,11 @@ vmComma = do a <- vmPop
                                           ) b'
                            vmPush $ GolfArray b''
 
---vmDiv = GolfBuiltin $
+vmBang = do a <- vmPop
+            vmPush $ golfFromBool $ isTrue a
+                        
+vmInspect = do a <- vmPop
+               vmPush $ GolfString $ serialize a
 
 {-vmMod = GolfBuiltin $
         do a <- vmPop
@@ -214,12 +243,16 @@ newVM = VM { vmStack = [],
                                     ("*", GolfBuiltin vmMul),
                                     ("/", GolfBuiltin vmDiv),
                                     ("=", GolfBuiltin vmEq),
+                                    ("<", GolfBuiltin vmLess),
+                                    (">", GolfBuiltin vmGreater),
                                     ("~", GolfBuiltin vmTilde),
+                                    ("`", GolfBuiltin vmInspect),
                                     (".", GolfBuiltin vmDup),
                                     ("@", GolfBuiltin vmRotate),
                                     ("\\", GolfBuiltin vmSwap),
                                     (";", GolfBuiltin vmDiscard),
                                     (",", GolfBuiltin vmComma),
+                                    ("!", GolfBuiltin vmBang),
                                     ("do", GolfBuiltin vmDoWhile),
                                     ("n", GolfString "\n"),
                                     ("h", GolfString "Hello, World"),
@@ -229,15 +262,20 @@ newVM = VM { vmStack = [],
   where stub = GolfBuiltin $ return ()
         
 run :: [GolfValue] -> Interpreter ()
-run = mapM_ run'
+run = mapM_ (\v ->
+                 do liftIO $ putStrLn $ show v
+                    run' v
+                    vm <- get
+                    liftIO $ putStrLn $ "stack: " ++ concatMap serialize (vmStack vm)
+            )
 
+run' :: GolfValue -> Interpreter ()
 run' (GolfComment _) = return ()
 run' (GolfToken token) = do vm <- get
-                            liftIO $ putStrLn $ "run " ++ show token
                             case Map.lookup token $ vmVars vm of
                               Just v -> run' v
                               Nothing -> error $ "Token undefined: " ++ token ++
-                                         " stack: " ++ concatMap serialize (vmStack vm)
+                                         " stack: " ++ show (vmStack vm)
 run' (GolfBuiltin b) = b
 run' (GolfAssign token) = do v <- vmPop
                              vm <- get

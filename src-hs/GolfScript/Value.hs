@@ -25,6 +25,13 @@ serialize (GolfBlock vs) = "{" ++ concatMap serialize vs ++ "}"
   
 isFalse :: GolfValue -> Bool
 isFalse = (`elem` [GolfNumber 0, GolfArray [], GolfString "", GolfBlock []])
+isTrue = not . isFalse
+
+golfFromBool :: Bool -> GolfValue
+golfFromBool b = GolfNumber $
+                 if b
+                 then 1
+                 else 0
 
 typePriority (GolfAssign _) = 0
 typePriority (GolfComment _) = 0
