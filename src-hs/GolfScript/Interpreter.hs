@@ -55,13 +55,16 @@ vmPop = do vm <- get
 vmPush :: GolfValue -> Interpreter ()
 vmPush v = do vm <- get
               put $ vm { vmStack = v : vmStack vm }
-
+              
 vmDiscard = do vm <- get
                case vmStack vm of
                  v : stack ->
                    put $ vm { vmStack = stack }
                  [] ->
                    return ()
+
+vmColon = do vm <- get
+             put $ vm { vmInAssignment = True }
 
 vmPlus = do (a, b) <- coerced
             vmPush $ case coerceTogether a b of
@@ -244,10 +247,7 @@ vmSin = do GolfNumber a <- vmPop
 
 newVM :: VM
 newVM = VM { vmStack = [],
-             vmVars = Map.fromList [(" ", stub),
-                                    ("\t", stub),
-                                    ("\r", stub),
-                                    ("\n", stub),
+             vmVars = Map.fromList [(":", GolfBuiltin vmColon),
                                     ("+", GolfBuiltin vmPlus),
                                     ("-", GolfBuiltin vmMinus),
                                     ("*", GolfBuiltin vmMul),
@@ -269,9 +269,9 @@ newVM = VM { vmStack = [],
                                     ("h", GolfString "Hello, World"),
                                     ("require", GolfBuiltin vmRequire),
                                     ("zip", GolfBuiltin vmZip),
-                                    ("sin", GolfBuiltin vmSin)]
+                                    ("sin", GolfBuiltin vmSin)],
+             vmInAssignment = False
            }
-  where stub = GolfBuiltin $ return ()
         
 run :: [GolfValue] -> Interpreter ()
 run = mapM_ (\v ->
@@ -283,15 +283,21 @@ run = mapM_ (\v ->
 
 run' :: GolfValue -> Interpreter ()
 run' (GolfComment _) = return ()
+run' (GolfToken token) | token `elem` [" ", "\t", "\r", "\n"] = return ()
 run' (GolfToken token) = do vm <- get
-                            case Map.lookup token $ vmVars vm of
-                              Just v -> run' v
-                              Nothing -> error $ "Token undefined: " ++ token ++
-                                         " stack: " ++ show (vmStack vm)
+                            case vmInAssignment vm of
+                              True ->
+                                  do put $ vm { vmInAssignment = False }
+                                     v <- vmPop
+                                     liftIO $ putStrLn $ "assign " ++ show token ++ " := " ++ take 32 (show v)
+                                     vmAssign token v
+                                     vmPush v
+                              False ->
+                                  case Map.lookup token $ vmVars vm of
+                                    Just v -> liftIO (putStrLn $ "call " ++ token) >> run' v
+                                    Nothing -> error $ "Token undefined: " ++ token ++
+                                               " stack: " ++ show (vmStack vm)
 run' (GolfBuiltin b) = b
-run' (GolfAssign token) = vmPop >>=
-                          vmAssign token
-
 run' (GolfArray vs) = do vm <- get
                          let stack = vmStack vm
                          put $ vm { vmStack = [] }

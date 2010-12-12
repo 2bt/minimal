@@ -5,7 +5,7 @@
 {0 state}:stop;
 
 # generate note names
-[ "C_CsD_DsE_F_FsG_GsA_AsB_" 2 / 12 * 120 , ] zip { . 1 = 16 * \ ~ 12 / + { } \ + ~ ; } /
+[ "C_CsD_DsE_F_FsG_GsA_AsB_" 2 / 12 * 120 , ] zip { . 1 = 16 * \ ~ 12 / + { : } \ + ~ ; } /
 
 ####### player #######
 4 : ticks_per_row ;

@@ -4,8 +4,7 @@ module GolfScript.Value where
 import Data.Map (Map)
 import Control.Monad.State.Lazy (StateT)
 
-data GolfValue = GolfAssign String
-               | GolfComment String
+data GolfValue = GolfComment String
                | GolfNumber Int
                | GolfArray [GolfValue]
                | GolfString String
@@ -15,7 +14,6 @@ data GolfValue = GolfAssign String
                deriving (Show, Eq)
 
 serialize :: GolfValue -> String
-serialize (GolfAssign id) = ":" ++ id
 serialize (GolfComment c) = c ++ "\n"
 serialize (GolfNumber n) = show n
 serialize (GolfArray vs) = "[" ++ concatMap serialize vs ++ "]"
@@ -33,7 +31,6 @@ golfFromBool b = GolfNumber $
                  then 1
                  else 0
 
-typePriority (GolfAssign _) = 0
 typePriority (GolfComment _) = 0
 typePriority (GolfNumber _) = 1
 typePriority (GolfArray _) = 2
@@ -44,7 +41,8 @@ typePriority (GolfBuiltin _) = 4
 
 
 data VM = VM { vmStack :: [GolfValue],
-               vmVars :: Map String GolfValue
+               vmVars :: Map String GolfValue,
+               vmInAssignment :: Bool
              }
 type Interpreter a = StateT VM IO a
 

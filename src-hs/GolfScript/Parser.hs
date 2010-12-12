@@ -14,18 +14,13 @@ parseString = right . parse (many golfCode) "-"
 right (Left e) = error $ show e
 right (Right a) = a
         
-golfCode = golfAssign <|>
-           golfNumber <|>
+golfCode = golfNumber <|>
            golfArray <|>
            golfBlock <|>
            golfString <|>
            golfRawString <|>
            golfComment <|>
            golfToken
-golfAssign = do char ':'
-                many $ oneOf " \t"
-                GolfToken token <- golfToken
-                return $ GolfAssign token
 golfNumber = (GolfNumber <$> read <$> many1 digit)
              <|> try (char '-' >>
                       GolfNumber <$> negate <$> read <$> many1 digit)
