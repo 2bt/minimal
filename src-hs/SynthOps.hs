@@ -37,11 +37,7 @@ boot s = GolfBuiltin $
                      channels = synthChannels synth
                      channels' = if idx <= snd (bounds channels)
                                  then channels
-                                 else array (0, idx) $
-                                      do i <- [0..idx]
-                                         let e | i <= snd (bounds channels) = channels ! i
-                                               | otherwise = defaultChannel
-                                         return (i, e)
+                                 else listArray (0, idx) $ elems channels ++ repeat defaultChannel
                  return $ synth { synthChannelIndex = idx,
                                   synthChannels = channels' }
 
