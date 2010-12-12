@@ -12,7 +12,7 @@ data GolfValue = GolfAssign String
                | GolfToken String
                | GolfBlock [GolfValue]
                | GolfBuiltin (Interpreter ())
-               deriving (Show, Eq, Ord)
+               deriving (Show, Eq)
 
 serialize :: GolfValue -> String
 serialize (GolfAssign id) = ":" ++ id
@@ -25,6 +25,15 @@ serialize (GolfBlock vs) = "{" ++ concatMap serialize vs ++ "}"
   
 isFalse :: GolfValue -> Bool
 isFalse = (`elem` [GolfNumber 0, GolfArray [], GolfString "", GolfBlock []])
+
+typePriority (GolfAssign _) = 0
+typePriority (GolfComment _) = 0
+typePriority (GolfNumber _) = 1
+typePriority (GolfArray _) = 2
+typePriority (GolfString _) = 3
+typePriority (GolfToken _) = 4
+typePriority (GolfBlock _) = 5
+typePriority (GolfBuiltin _) = 4
 
 
 data VM = VM { vmStack :: [GolfValue],

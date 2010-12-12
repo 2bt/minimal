@@ -11,16 +11,20 @@ import GolfScript.Parser
 
 coerceTogether :: GolfValue -> GolfValue -> (GolfValue, GolfValue)
 coerceTogether a b
-  | a < b = let a' = coerceTo a b
-            in (a', b)
-  | a > b = let b' = coerceTo b a
-            in (a, b')
+  | typePriority a < typePriority b = 
+      let a' = coerceTo a b
+      in (a', b)
+  | typePriority a > typePriority b = 
+      let b' = coerceTo b a
+      in (a, b')
   | otherwise = (a, b)
 
 coerceTo v (GolfArray _) = GolfArray [v]
 coerceTo v (GolfString _) = GolfString $ serialize v
-coerceTo v to = error $ "Cannot coerce " ++ show (serialize v) ++ " to " ++ show (serialize to)
+coerceTo (GolfArray vs) (GolfBlock _) = GolfBlock vs
+coerceTo v to = error $ "Cannot coerce " ++ show v ++ " to " ++ show to
 
+coerced :: Interpreter (GolfValue, GolfValue)
 coerced = do b <- vmPop
              a <- vmPop
              return $ coerceTogether a b
@@ -28,7 +32,7 @@ coerced = do b <- vmPop
 ordered :: Interpreter (GolfValue, GolfValue)
 ordered = do b <- vmPop
              a <- vmPop
-             case a < b of
+             case typePriority a < typePriority b of
                True ->
                  return (b, a)
                False ->
