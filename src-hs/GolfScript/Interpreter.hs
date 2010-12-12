@@ -39,6 +39,9 @@ ordered = do b <- vmPop
                False ->
                  return (a, b)
 
+vmAssign :: String -> GolfValue -> Interpreter ()
+vmAssign token v = do vm <- get
+                      put $ vm { vmVars = Map.insert token v $ vmVars vm }
 
 vmPop :: Interpreter GolfValue
 vmPop = do vm <- get
@@ -81,6 +84,8 @@ vmMinus = do (a, b) <- coerced
                  GolfArray $ filter (`elem` b') a'
                (GolfString a', GolfString b') ->
                  GolfString $ filter (`elem` b') a'
+               _ ->
+                 error $ "Cannot minus " ++ show a ++ " & " ++ show b
 
 vmMul = do (a, b) <- ordered
            case (a, b) of
@@ -90,6 +95,8 @@ vmMul = do (a, b) <- ordered
              (GolfString a', GolfNumber b') ->
                vmPush $ GolfString $
                take (length a' * b') $ cycle a'
+             (GolfBlock a', GolfNumber b') ->
+               mapM_ (const $ run a') [1..b']
              _ ->
                error $ "Cannot mul " ++ show a ++ " & " ++ show b
 
@@ -195,18 +202,16 @@ vmBang = do a <- vmPop
 vmInspect = do a <- vmPop
                vmPush $ GolfString $ serialize a
 
-{-vmMod = GolfBuiltin $
-        do a <- vmPop
-           b <- vmPop
-           case a < b of
-             True ->
-               do vmPush a
-                  vmPush b
-                  vmMod
-             False ->
-               case (a, b) of
-                 (GolfNumber a', GolfNumber b') ->
-                   vmPush $ GolfNumber $ b' `mod` a'-}
+vmMod = do (a, b) <- ordered
+           case (a, b) of
+             (GolfNumber a', GolfNumber b') ->
+               vmPush $ GolfNumber $ b' `mod` a'
+             (GolfBlock a', GolfArray b') ->
+               forM_ b' $ \v -> 
+               do vmPush v
+                  run a'
+             _ ->
+               error $ "Cannot % " ++ show a ++ " & " ++ show b
 
 vmDoWhile = do GolfBlock vs <- vmPop
                let r = do run vs
@@ -232,6 +237,11 @@ vmZip = do vm <- get
              _ ->
                error $ "Cannot zip " ++ show v
 
+vmSin = do GolfNumber a <- vmPop
+           vmPush $ GolfNumber $
+             truncate $
+             (fromIntegral a / 360.0) * 1000
+
 newVM :: VM
 newVM = VM { vmStack = [],
              vmVars = Map.fromList [(" ", stub),
@@ -242,6 +252,7 @@ newVM = VM { vmStack = [],
                                     ("-", GolfBuiltin vmMinus),
                                     ("*", GolfBuiltin vmMul),
                                     ("/", GolfBuiltin vmDiv),
+                                    ("%", GolfBuiltin vmMod),
                                     ("=", GolfBuiltin vmEq),
                                     ("<", GolfBuiltin vmLess),
                                     (">", GolfBuiltin vmGreater),
@@ -257,7 +268,8 @@ newVM = VM { vmStack = [],
                                     ("n", GolfString "\n"),
                                     ("h", GolfString "Hello, World"),
                                     ("require", GolfBuiltin vmRequire),
-                                    ("zip", GolfBuiltin vmZip)]
+                                    ("zip", GolfBuiltin vmZip),
+                                    ("sin", GolfBuiltin vmSin)]
            }
   where stub = GolfBuiltin $ return ()
         
@@ -265,8 +277,8 @@ run :: [GolfValue] -> Interpreter ()
 run = mapM_ (\v ->
                  do liftIO $ putStrLn $ show v
                     run' v
-                    vm <- get
-                    liftIO $ putStrLn $ "stack: " ++ concatMap serialize (vmStack vm)
+                    --vm <- get
+                    --liftIO $ putStrLn $ "stack: " ++ concatMap serialize (vmStack vm)
             )
 
 run' :: GolfValue -> Interpreter ()
@@ -277,9 +289,9 @@ run' (GolfToken token) = do vm <- get
                               Nothing -> error $ "Token undefined: " ++ token ++
                                          " stack: " ++ show (vmStack vm)
 run' (GolfBuiltin b) = b
-run' (GolfAssign token) = do v <- vmPop
-                             vm <- get
-                             put $ vm { vmVars = Map.insert token v $ vmVars vm }
+run' (GolfAssign token) = vmPop >>=
+                          vmAssign token
+
 run' (GolfArray vs) = do vm <- get
                          let stack = vmStack vm
                          put $ vm { vmStack = [] }
@@ -290,5 +302,6 @@ run' (GolfArray vs) = do vm <- get
                          vmPush $ GolfArray stack'
 run' v = vmPush v
 
+runCode :: [GolfValue] -> IO [GolfValue]
 runCode code = vmStack <$>
                execStateT (run code) newVM

@@ -5,11 +5,14 @@ import Control.Monad
 import GolfScript.Parser (parseFile)
 import GolfScript.Value (serialize)
 import GolfScript.Interpreter (runCode)
+import qualified Synth as S
+import SynthOps (boot)
 
-runFile :: String -> IO ()
-runFile fn = do code <- parseFile fn
-                stack <- runCode code
-                putStrLn $ concatMap serialize stack
+runFile :: S.SynthRef -> String -> IO ()
+runFile s fn = do code <- parseFile fn
+                  stack <- runCode $ boot s : code
+                  putStrLn $ concatMap serialize stack
 
-main = getArgs >>=
-       mapM runFile
+main = do s <- S.new
+          getArgs >>= mapM (runFile s)
+          S.close s

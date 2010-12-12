@@ -26,7 +26,9 @@ golfAssign = do char ':'
                 many $ oneOf " \t"
                 GolfToken token <- golfToken
                 return $ GolfAssign token
-golfNumber = GolfNumber <$> read <$> many1 digit
+golfNumber = (GolfNumber <$> read <$> many1 digit)
+             <|> try (char '-' >>
+                      GolfNumber <$> negate <$> read <$> many1 digit)
 golfBlock = char '{' >>
             (GolfBlock <$> manyTill golfCode (char '}'))
 golfArray = char '[' >>
