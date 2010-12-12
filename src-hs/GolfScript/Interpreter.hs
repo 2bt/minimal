@@ -1,83 +1,13 @@
-{-# LANGUAGE TypeSynonymInstances #-}
-module GolfScript where
+module GolfScript.Interpreter where
 
-import Text.ParserCombinators.Parsec hiding (State)
-import Text.ParserCombinators.Parsec.Char
-import Control.Applicative hiding ((<|>), many)
 import Control.Monad.State.Lazy
-import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Bits (complement)
 import Data.List (transpose)
+import Control.Applicative
+import GolfScript.Value
+import GolfScript.Parser
 
--- TODO: order
-data GolfValue = GolfAssign String
-               | GolfComment String
-               | GolfNumber Int
-               | GolfArray [GolfValue]
-               | GolfString String
-               | GolfToken String
-               | GolfBlock [GolfValue]
-               | GolfBuiltin (Interpreter ())
-               deriving (Show, Eq, Ord)
-                        
-data VM = VM { vmStack :: [GolfValue],
-               vmVars :: Map String GolfValue
-             }
-type Interpreter a = StateT VM IO a
-
-serialize :: GolfValue -> String
-serialize (GolfAssign id) = ":" ++ id
-serialize (GolfComment c) = c ++ "\n"
-serialize (GolfNumber n) = show n
-serialize (GolfArray vs) = "[" ++ concatMap serialize vs ++ "]"
-serialize (GolfString s) = "'" ++ s ++ "'"
-serialize (GolfToken token) = token
-serialize (GolfBlock vs) = "{" ++ concatMap serialize vs ++ "}"
-  
-isFalse :: GolfValue -> Bool
-isFalse = (`elem` [GolfNumber 0, GolfArray [], GolfString "", GolfBlock []])
-  
-instance Eq (Interpreter a) where
-  _ == _ = True
-instance Ord (Interpreter a) where
-  compare _ _ = EQ
-instance Show (Interpreter a) where
-  show _ = "<code>"
-
-parseFile :: FilePath -> IO [GolfValue]
-parseFile f = right <$> (parseFromFile $ many golfCode) f
-  where right (Left e) = error $ show e
-        right (Right a) = a
-
-golfCode = golfAssign <|>
-           golfNumber <|>
-           golfArray <|>
-           golfBlock <|>
-           golfString <|>
-           golfRawString <|>
-           golfComment <|>
-           golfToken
-golfAssign = do char ':'
-                GolfToken token <- golfToken
-                return $ GolfAssign token
-golfNumber = GolfNumber <$> read <$> many1 digit
-golfBlock = char '{' >>
-            (GolfBlock <$> manyTill golfCode (char '}'))
-golfArray = char '[' >>
-            (GolfArray <$> manyTill golfCode (char ']'))
--- TODO: escapes
-golfString = char '\'' >>
-             (GolfString <$> manyTill anyChar (char '\''))
--- TODO: escapes
-golfRawString = char '"' >>
-                (GolfString <$> manyTill anyChar (char '"'))
-golfComment = char '#' >>
-              (GolfComment <$> manyTill anyChar (char '\n'))
-golfToken = GolfToken <$> (word <|> ((:"") <$> noneOf "}]"))
-  where word = do h <- letter <|> char '_'
-                  t <- many $ alphaNum <|> char '_'
-                  return $ h : t
 
 coerceTogether :: GolfValue -> GolfValue -> (GolfValue, GolfValue)
 coerceTogether a b
@@ -167,8 +97,7 @@ vmTilde = do v <- vmPop
                GolfArray vs ->
                  mapM_ vmPush vs
                GolfString s ->
-                 let Right vs = parse (many golfCode) "-" s
-                 in run vs
+                 run $ parseString s
                GolfBlock vs ->
                  run vs
 
