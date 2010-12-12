@@ -28,6 +28,7 @@ data Channel = Channel { chPhase :: Double,
                          chWave :: ChannelWave,
                          chPulseWidth :: Double
                        }
+             deriving (Show)
 
 defaultChannel = Channel { chPhase = 0,
                            chShiftReg = 0x7ffff8,
@@ -50,7 +51,11 @@ data Synthesizer = Synthesizer { synthChannels :: Array Int Channel,  -- TODO: A
                                  synthFrameSize :: Int,
                                  synthPulse :: Simple
                                }
+                 deriving (Show)
 type SynthRef = IORef Synthesizer
+
+instance Show Simple where
+  show _ = "<Pulse>"
 
 new :: IO SynthRef
 new = do pulse <- simpleNew Nothing "minimal" Play Nothing "minimal synthesizer with golfscript interpreter"
@@ -70,6 +75,7 @@ play s = do synth <- readIORef s
                 writeSample sample synth
                     | sample < synthFrameSize synth
                         = do let (synth', l, r) = mix synth
+                             putStrLn $ show synth'
                              simpleWrite pulse [truncate $ l * 6000,
                                                 truncate $ r * 6000 :: Word16]
                              writeSample (sample + 1) synth
