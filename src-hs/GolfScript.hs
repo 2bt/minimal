@@ -63,7 +63,7 @@ golfNumber = GolfNumber <$> read <$> many1 digit
 golfBlock = char '{' >>
             (GolfBlock <$> manyTill golfCode (char '}'))
 golfArray = char '[' >>
-            (GolfBlock <$> manyTill golfCode (char ']'))
+            (GolfArray <$> manyTill golfCode (char ']'))
 -- TODO: escapes
 golfString = char '\'' >>
              (GolfString <$> manyTill anyChar (char '\''))
