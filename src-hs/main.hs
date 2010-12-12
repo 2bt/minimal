@@ -8,7 +8,7 @@ runFile :: String -> IO ()
 runFile fn = do code <- GolfScript.parseFile fn
                 --putStrLn $ show code
                 stack <- GolfScript.runCode code
-                putStrLn $ show stack
+                putStrLn $ concatMap GolfScript.serialize stack
 
 main = getArgs >>=
        mapM runFile

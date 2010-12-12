@@ -19,21 +19,21 @@ data GolfValue = GolfAssign String
                | GolfToken String
                | GolfBlock [GolfValue]
                | GolfBuiltin (Interpreter ())
-               deriving (Eq, Ord)
+               deriving (Show, Eq, Ord)
                         
 data VM = VM { vmStack :: [GolfValue],
                vmVars :: Map String GolfValue
              }
 type Interpreter a = StateT VM IO a
 
-instance Show GolfValue where
-  show (GolfAssign id) = ":" ++ id
-  show (GolfComment c) = c ++ "\n"
-  show (GolfNumber n) = show n
-  show (GolfArray vs) = "[" ++ concatMap show vs ++ "]"
-  show (GolfString s) = "'" ++ s ++ "'"
-  show (GolfToken token) = token
-  show (GolfBlock vs) = "{" ++ concatMap show vs ++ "}"
+serialize :: GolfValue -> String
+serialize (GolfAssign id) = ":" ++ id
+serialize (GolfComment c) = c ++ "\n"
+serialize (GolfNumber n) = show n
+serialize (GolfArray vs) = "[" ++ concatMap serialize vs ++ "]"
+serialize (GolfString s) = "'" ++ s ++ "'"
+serialize (GolfToken token) = token
+serialize (GolfBlock vs) = "{" ++ concatMap serialize vs ++ "}"
   
 isFalse :: GolfValue -> Bool
 isFalse = (`elem` [GolfNumber 0, GolfArray [], GolfString "", GolfBlock []])
@@ -42,6 +42,8 @@ instance Eq (Interpreter a) where
   _ == _ = True
 instance Ord (Interpreter a) where
   compare _ _ = EQ
+instance Show (Interpreter a) where
+  show _ = "<code>"
 
 parseFile :: FilePath -> IO [GolfValue]
 parseFile f = right <$> (parseFromFile $ many golfCode) f
@@ -86,8 +88,8 @@ coerceTogether a b
   | otherwise = (a, b)
 
 coerceTo v (GolfArray _) = GolfArray [v]
-coerceTo v (GolfString _) = GolfString $ show v
-coerceTo v to = error $ "Cannot coerce " ++ show v ++ " to " ++ show to
+coerceTo v (GolfString _) = GolfString $ serialize v
+coerceTo v to = error $ "Cannot coerce " ++ show (serialize v) ++ " to " ++ show (serialize to)
 
 coerced = do b <- vmPop
              a <- vmPop
@@ -229,7 +231,7 @@ vmRequire = do GolfString fn <- vmPop
                run vs
                
 vmZip = do vm <- get
-           liftIO $ putStrLn $ "stack: " ++ show (GolfBlock $ vmStack vm)
+           liftIO $ putStrLn $ "stack: " ++ concatMap serialize (vmStack vm)
            v <- vmPop
            case v of
              GolfArray a ->
@@ -276,6 +278,14 @@ run' (GolfBuiltin b) = b
 run' (GolfAssign token) = do v <- vmPop
                              vm <- get
                              put $ vm { vmVars = Map.insert token v $ vmVars vm }
+run' (GolfArray vs) = do vm <- get
+                         let stack = vmStack vm
+                         put $ vm { vmStack = [] }
+                         run vs
+                         vm' <- get
+                         let stack' = vmStack vm'
+                         put $ vm' { vmStack = stack }
+                         vmPush $ GolfArray stack'
 run' v = vmPush v
 
 runCode code = vmStack <$>
