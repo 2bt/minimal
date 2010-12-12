@@ -25,16 +25,13 @@ boot s = GolfBuiltin $
                   do let channels = synthChannels synth
                          idx = synthChannelIndex synth
                          channel = channels ! idx
+                     liftIO $ putStrLn $ "channel: " ++ show idx ++ "\nchannel: " ++ show channel
                      channel' <- f channel
                      return $ synth { synthChannels = channels // [(idx, channel')] }
                      
             synthCall "channel" $ \synth ->
               do GolfNumber idx <- vmPop
-                 let expandChannels :: [Channel] -> [Channel]
-                     expandChannels cs
-                       | length cs > idx = cs
-                       | otherwise = expandChannels $ cs ++ [defaultChannel]
-                     channels = synthChannels synth
+                 let channels = synthChannels synth
                      channels' = if idx <= snd (bounds channels)
                                  then channels
                                  else listArray (0, idx) $ elems channels ++ repeat defaultChannel
