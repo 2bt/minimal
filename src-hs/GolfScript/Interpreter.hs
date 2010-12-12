@@ -73,22 +73,48 @@ vmMinus = do (a, b) <- coerced
                (GolfString a', GolfString b') ->
                  GolfString $ filter (`elem` b') a'
 
+vmMul = do (a, b) <- ordered
+           case (a, b) of
+             (GolfArray a', GolfNumber b') ->
+               vmPush $ GolfArray $
+               take (length a' * b') $ cycle a'
+
 vmDiv = do (a, b) <- ordered
-           vmPush $ case (a, b) of
+           case (a, b) of
              (GolfNumber a', GolfNumber b') ->
-               GolfNumber $ a' `div` b'
+               vmPush $ GolfNumber $ a' `div` b'
              (GolfArray a', GolfNumber b') ->
                let r vs = if length vs > b'
                           then let (vs', vs'') = splitAt b' vs
                                in (GolfArray vs') : (r vs'')
                           else [GolfArray vs]
-               in GolfArray $ r a'
+               in vmPush $ GolfArray $ r a'
              (GolfString a', GolfNumber b') ->
                let r vs = if length vs > b'
                           then let (vs', vs'') = splitAt b' vs
                                in (GolfString vs') : (r vs'')
                           else [GolfString vs]
-               in GolfArray $ r a'
+               in vmPush $ GolfArray $ r a'
+             (GolfBlock a', GolfArray b') ->
+               mapM_ (\v ->
+                       vmPush v >>
+                       run a'
+                     ) b'
+             _ ->
+               error $ "Cannot div " ++ show a ++ " & " ++ show b
+
+vmEq = do (a, b) <- ordered
+          case (a, b) of
+            (GolfNumber a', GolfNumber b') ->
+              vmPush $ GolfNumber $
+              if a' == b'
+              then 1
+              else 0
+            (GolfArray a', GolfNumber b')
+              | b' < length a' ->
+                vmPush $ a' !! b'
+              | otherwise ->
+                return ()
 
 vmTilde = do v <- vmPop
              case v of
@@ -179,7 +205,9 @@ newVM = VM { vmStack = [],
                                     ("\n", stub),
                                     ("+", GolfBuiltin vmPlus),
                                     ("-", GolfBuiltin vmMinus),
+                                    ("*", GolfBuiltin vmMul),
                                     ("/", GolfBuiltin vmDiv),
+                                    ("=", GolfBuiltin vmEq),
                                     ("~", GolfBuiltin vmTilde),
                                     (".", GolfBuiltin vmDup),
                                     ("@", GolfBuiltin vmRotate),
@@ -202,7 +230,8 @@ run' (GolfToken token) = do vm <- get
                             liftIO $ putStrLn $ "run " ++ show token
                             case Map.lookup token $ vmVars vm of
                               Just v -> run' v
-                              Nothing -> error $ "Token undefined: " ++ token
+                              Nothing -> error $ "Token undefined: " ++ token ++
+                                         " stack: " ++ concatMap serialize (vmStack vm)
 run' (GolfBuiltin b) = b
 run' (GolfAssign token) = do v <- vmPop
                              vm <- get
