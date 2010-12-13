@@ -62,6 +62,11 @@ boot s = GolfBuiltin $
                  let pan' = fromIntegral pan / 100.0 + 0.5
                  return $ channel { chPanLeft = sqrt (1 - pan'), 
                                     chPanRight = sqrt pan' }
+
+            channelCall "attack" $ \channel ->
+              do GolfNumber attack <- vmPop
+                 let f = fromIntegral attack * 2.5 / 100.0
+                 return $ channel { chAttack = 1 / (f * f * 48000 * 0.0001) }
             
             channelCall "sustain" $ \channel ->
               do GolfNumber sustain <- vmPop

@@ -24,6 +24,7 @@ coerceTogether a b
 coerceTo v (GolfArray _) = GolfArray [v]
 coerceTo v (GolfString _) = GolfString $ serialize v
 coerceTo (GolfArray vs) (GolfBlock _) = GolfBlock vs
+coerceTo (GolfString s) (GolfBlock _) = GolfBlock $ parseString s
 coerceTo v to = error $ "Cannot coerce " ++ show v ++ " to " ++ show to
 
 coerced :: Interpreter (GolfValue, GolfValue)
@@ -93,6 +94,8 @@ vmMinus = do (a, b) <- coerced
 
 vmMul = do (a, b) <- ordered
            case (a, b) of
+             (GolfNumber a', GolfNumber b') ->
+               vmPush $ GolfNumber $ a' * b'
              (GolfArray a', GolfNumber b') ->
                vmPush $ GolfArray $
                take (length a' * b') $ cycle a'
