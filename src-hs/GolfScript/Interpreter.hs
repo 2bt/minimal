@@ -303,7 +303,7 @@ run' (GolfArray vs) = do vm <- get
                          vm' <- get
                          let stack' = vmStack vm'
                          put $ vm' { vmStack = stack }
-                         vmPush $ GolfArray stack'
+                         vmPush $ GolfArray $ reverse stack'
 run' v = vmPush v
 
 exec :: VM -> [GolfValue] -> IO VM
