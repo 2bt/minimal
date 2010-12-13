@@ -253,6 +253,8 @@ class Synth {
 					((s & 0x000004) << 2)) * (1.0 / (1<<12)) - 0.5;
 				break;
 			}
+//			amp = (cast(int) ((amp+1)*32))/32.0-1;
+			
 			amp *= c.volume * c.level;
 			left += amp * c.pan_left;
 			right += amp * c.pan_right;

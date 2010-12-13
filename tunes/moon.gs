@@ -5,16 +5,17 @@
 
 ####### lead #######
 {
-	2	wave
+	3	wave
 	30	pulse
-	30	attack
+#	30	attack
 	70	release
 	20	panning
+#	0	volume
 
 } : lead_init ;
 
 [
-	{ play [ Ds4 6 100 ] m_vibrato } { lead_init } +
+	{ play [ Ds3 300 100 ] m_vibrato } { lead_init } +
 	{}
 	{}
 	{}
@@ -22,7 +23,10 @@
 	{}
 	{}
 	{}
-	{ stop [~\(; C_4 \+\] }
+
+#	{ stop [~\(; C_4 \+\] }
+	{ stop }
+
 	{}
 	{}
 	{}
@@ -36,7 +40,7 @@
 ] {{}}% : lead1 ;
 
 [
-	{ play [ G_4 6 100 ] m_vibrato } { lead_init -20 panning} +
+	{ play [ G_4 6 100 ] m_vibrato } { lead_init -20 panning 0 volume } +
 	{}
 	{}
 	{}
@@ -61,12 +65,11 @@
 
 ####### bass #######
 {
-	0	wave
-	10	pulse
+	1	wave
+	40	pulse
 	3	attack
 	5	release
 	-5	panning
-	70	volume
 
 } : bass_init ;
 
@@ -99,8 +102,8 @@
 	{}
 	{ play C_2 pitch }
 	{}
-	{}
 	{ stop }
+	{}
 	{ play C_2 pitch }
 	{}
 	{ stop }
@@ -125,7 +128,6 @@
 ####### patterns #######
 [
 	[ lead1 lead2 bass1 ]
-
 ] : patterns ;
 
 
