@@ -3,6 +3,7 @@ module GolfScript.Value where
 
 import Data.Map (Map)
 import Control.Monad.State.Lazy (StateT)
+import Data.List (intercalate)
 
 data GolfValue = GolfComment String
                | GolfNumber Int
@@ -16,7 +17,7 @@ data GolfValue = GolfComment String
 serialize :: GolfValue -> String
 serialize (GolfComment c) = c ++ "\n"
 serialize (GolfNumber n) = show n
-serialize (GolfArray vs) = "[" ++ concatMap serialize vs ++ "]"
+serialize (GolfArray vs) = "[" ++ intercalate " " (map serialize vs) ++ "]"
 serialize (GolfString s) = "'" ++ s ++ "'"
 serialize (GolfToken token) = token
 serialize (GolfBlock vs) = "{" ++ concatMap serialize vs ++ "}"

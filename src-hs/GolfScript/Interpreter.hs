@@ -6,6 +6,7 @@ import Data.Bits (complement)
 import Data.List (transpose)
 import Data.Char (ord)
 import Control.Applicative
+import Data.List (intercalate)
 import GolfScript.Value
 import GolfScript.Parser
 
@@ -294,7 +295,7 @@ run' (GolfToken token) = do vm <- get
                                   case Map.lookup token $ vmVars vm of
                                     Just v -> liftIO (putStrLn $ "call " ++ token) >> run' v
                                     Nothing -> error $ "Token undefined: " ++ token ++
-                                               " stack: " ++ show (vmStack vm)
+                                               " stack: " ++ intercalate " " (map serialize $ vmStack vm)
 run' (GolfBuiltin b) = b
 run' (GolfArray vs) = do vm <- get
                          let stack = vmStack vm
