@@ -296,7 +296,10 @@ run' (GolfToken token) = do vm <- get
                                      vmPush v
                               False ->
                                   case Map.lookup token $ vmVars vm of
-                                    Just v -> liftIO (putStrLn $ "call " ++ token) >> run' v
+                                    Just v -> do liftIO (putStrLn $ "call " ++ token)
+                                                 case v of
+                                                   GolfBlock vs -> run vs
+                                                   _ -> run' v
                                     Nothing -> error $ "Token undefined: " ++ token ++
                                                " stack: " ++ intercalate " " (map serialize $ vmStack vm)
 run' (GolfBuiltin b) = b
