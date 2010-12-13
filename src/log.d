@@ -33,7 +33,8 @@ class SoundLog {
 		file.write(0);				// number of frames
 		file.write(swap_short(16));	// 16 bit
 		// write 48000 in FPU double extended precision format
-		foreach(ubyte s; [0x40, 0x0e, 0xbb, 0x80, 0, 0, 0, 0, 0, 0])
+		ubyte[] a = [0x40, 0x0e, 0xbb, 0x80, 0, 0, 0, 0, 0, 0];
+		foreach(s; a)
 			file.write(s);
 
 		file.writeBlock("SSND".ptr, 4);
