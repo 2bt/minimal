@@ -57,9 +57,11 @@ type SynthRef = IORef Synthesizer
 instance Show Simple where
   show _ = "<Pulse>"
 
+mixRate = 48000
+
 new :: IO SynthRef
 new = do pulse <- simpleNew Nothing "minimal" Play Nothing "minimal synthesizer with golfscript interpreter"
-                  (SampleSpec (S16 LittleEndian) 48000 2) Nothing Nothing
+                  (SampleSpec (S16 LittleEndian) mixRate 2) Nothing Nothing
          newIORef $ Synthesizer { synthChannels = array (0, 0) [(0, defaultChannel)],
                                   synthChannelIndex = 0,
                                   synthFrameSize = 10000,
@@ -71,6 +73,7 @@ close s = readIORef s >>= simpleFree . synthPulse
 
 play :: SynthRef -> IO ()
 play s = do synth <- readIORef s
+            putStrLn $ "play " ++ show synth
             let pulse = synthPulse synth
                 writeSample sample synth
                     | sample < synthFrameSize synth

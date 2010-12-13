@@ -45,6 +45,7 @@ data VM = VM { vmStack :: [GolfValue],
                vmVars :: Map String GolfValue,
                vmInAssignment :: Bool
              }
+        deriving (Show)
 type Interpreter a = StateT VM IO a
 
   
