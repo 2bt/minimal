@@ -218,6 +218,16 @@ vmMod = do (a, b) <- ordered
                   run a'
              _ ->
                error $ "Cannot % " ++ show a ++ " & " ++ show b
+               
+vmDec = do a <- vmPop
+           case a of
+             GolfNumber a' ->
+               vmPush $ GolfNumber $ a' - 1
+
+vmInc = do a <- vmPop
+           case a of
+             GolfNumber a' ->
+               vmPush $ GolfNumber $ a' + 1
 
 vmDoWhile = do GolfBlock vs <- vmPop
                let r = do run vs
@@ -266,6 +276,8 @@ newVM = VM { vmStack = [],
                                     (";", GolfBuiltin vmDiscard),
                                     (",", GolfBuiltin vmComma),
                                     ("!", GolfBuiltin vmBang),
+                                    ("(", GolfBuiltin vmDec),
+                                    (")", GolfBuiltin vmInc),
                                     ("do", GolfBuiltin vmDoWhile),
                                     ("n", GolfString "\n"),
                                     ("h", GolfString "Hello, World"),
