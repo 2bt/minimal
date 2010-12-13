@@ -62,6 +62,11 @@ boot s = GolfBuiltin $
                  let pan' = fromIntegral pan / 100.0 + 0.5
                  return $ channel { chPanLeft = sqrt (1 - pan'), 
                                     chPanRight = sqrt pan' }
+
+            channelCall "attack" $ \channel ->
+              do GolfNumber attack <- vmPop
+                 let f = fromIntegral attack * 2.5 / 100.0
+                 return $ channel { chAttack = 1 / (f * f * 48000 * 0.0001) }
             
             channelCall "sustain" $ \channel ->
               do GolfNumber sustain <- vmPop
@@ -80,4 +85,16 @@ boot s = GolfBuiltin $
             channelCall "pulse" $ \channel ->
               do GolfNumber pulse <- vmPop
                  return $ channel { chPulseWidth = fromIntegral pulse / 100.0 }
+            
+            let r s = do vmPush $ GolfString s
+                         vmTilde
+            r "0            state"
+            r "100             volume"
+            r "0               panning"
+            r "2               attack"
+            r "30              decay"
+            r "50              sustain"
+            r "2               release"
+            r "0               wave"
+            r "50              pulse"
             

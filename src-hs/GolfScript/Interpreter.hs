@@ -6,6 +6,7 @@ import Data.Bits (complement)
 import Data.List (transpose)
 import Data.Char (ord)
 import Control.Applicative
+import Data.List (intercalate)
 import GolfScript.Value
 import GolfScript.Parser
 
@@ -23,6 +24,7 @@ coerceTogether a b
 coerceTo v (GolfArray _) = GolfArray [v]
 coerceTo v (GolfString _) = GolfString $ serialize v
 coerceTo (GolfArray vs) (GolfBlock _) = GolfBlock vs
+coerceTo (GolfString s) (GolfBlock _) = GolfBlock $ parseString s
 coerceTo v to = error $ "Cannot coerce " ++ show v ++ " to " ++ show to
 
 coerced :: Interpreter (GolfValue, GolfValue)
@@ -92,6 +94,8 @@ vmMinus = do (a, b) <- coerced
 
 vmMul = do (a, b) <- ordered
            case (a, b) of
+             (GolfNumber a', GolfNumber b') ->
+               vmPush $ GolfNumber $ a' * b'
              (GolfArray a', GolfNumber b') ->
                vmPush $ GolfArray $
                take (length a' * b') $ cycle a'
@@ -214,6 +218,16 @@ vmMod = do (a, b) <- ordered
                   run a'
              _ ->
                error $ "Cannot % " ++ show a ++ " & " ++ show b
+               
+vmDec = do a <- vmPop
+           case a of
+             GolfNumber a' ->
+               vmPush $ GolfNumber $ a' - 1
+
+vmInc = do a <- vmPop
+           case a of
+             GolfNumber a' ->
+               vmPush $ GolfNumber $ a' + 1
 
 vmDoWhile = do GolfBlock vs <- vmPop
                let r = do run vs
@@ -262,6 +276,8 @@ newVM = VM { vmStack = [],
                                     (";", GolfBuiltin vmDiscard),
                                     (",", GolfBuiltin vmComma),
                                     ("!", GolfBuiltin vmBang),
+                                    ("(", GolfBuiltin vmDec),
+                                    (")", GolfBuiltin vmInc),
                                     ("do", GolfBuiltin vmDoWhile),
                                     ("n", GolfString "\n"),
                                     ("h", GolfString "Hello, World"),
@@ -292,9 +308,12 @@ run' (GolfToken token) = do vm <- get
                                      vmPush v
                               False ->
                                   case Map.lookup token $ vmVars vm of
-                                    Just v -> liftIO (putStrLn $ "call " ++ token) >> run' v
+                                    Just v -> do liftIO (putStrLn $ "call " ++ token)
+                                                 case v of
+                                                   GolfBlock vs -> run vs
+                                                   _ -> run' v
                                     Nothing -> error $ "Token undefined: " ++ token ++
-                                               " stack: " ++ show (vmStack vm)
+                                               " stack: " ++ intercalate " " (map serialize $ vmStack vm)
 run' (GolfBuiltin b) = b
 run' (GolfArray vs) = do vm <- get
                          let stack = vmStack vm
