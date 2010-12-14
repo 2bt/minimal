@@ -64,12 +64,12 @@ boot s = GolfBuiltin $
 
             channelCall "pitch" $ \channel ->
               do GolfNumber pitch <- vmPop
-                 return $ channel { chSpeed = (440.0 / fromIntegral mixRate) * (2 ** (fromIntegral pitch - (9 + 12 * 4) * 16) * (1.0 / (12 * 16))) }
+                 return $ channel { chSpeed = (440.0 / fromIntegral mixRate) * (2 ** ((fromIntegral pitch - (9 + 12 * 4) * 16) * (1.0 / (12 * 16)))) }
 
             channelCall "attack" $ \channel ->
               do GolfNumber attack <- vmPop
                  let f = fromIntegral attack * 2.5 / 100.0
-                 return $ channel { chAttack = 1 / (f * f * fromIntegral mixRate * 0.0001) }
+                 return $ channel { chAttack = 1 / (f * f * fromIntegral mixRate + 0.0001) }
             
             channelCall "sustain" $ \channel ->
               do GolfNumber sustain <- vmPop
