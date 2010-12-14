@@ -257,6 +257,15 @@ vmSin = do GolfNumber a <- vmPop
              truncate $
              (fromIntegral a / 360.0) * 1000
 
+vmPrint = do v <- vmPop
+             case v of
+               GolfString s ->
+                 liftIO $ putStr s
+               GolfNumber n ->
+                 liftIO $ putStr $ show n
+               _ ->
+                 error $ "Cannot print " ++ show v
+
 newVM :: VM
 newVM = VM { vmStack = [],
              vmVars = Map.fromList [(":", GolfBuiltin vmColon),
@@ -283,7 +292,10 @@ newVM = VM { vmStack = [],
                                     ("h", GolfString "Hello, World"),
                                     ("require", GolfBuiltin vmRequire),
                                     ("zip", GolfBuiltin vmZip),
-                                    ("sin", GolfBuiltin vmSin)],
+                                    ("sin", GolfBuiltin vmSin),
+                                    ("puts", GolfBuiltin $ vmPrint >> liftIO (putStrLn "")),
+                                    ("print", GolfBuiltin vmPrint),
+                                    ("p", GolfBuiltin $ vmInspect >> vmPrint >> liftIO (putStrLn ""))],
              vmInAssignment = False
            }
         

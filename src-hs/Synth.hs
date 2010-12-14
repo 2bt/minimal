@@ -57,9 +57,11 @@ type SynthRef = IORef Synthesizer
 instance Show Simple where
   show _ = "<Pulse>"
 
+mixRate = 48000
+
 new :: IO SynthRef
 new = do pulse <- simpleNew Nothing "minimal" Play Nothing "minimal synthesizer with golfscript interpreter"
-                  (SampleSpec (S16 LittleEndian) 48000 2) Nothing Nothing
+                  (SampleSpec (S16 LittleEndian) mixRate 2) Nothing Nothing
          newIORef $ Synthesizer { synthChannels = array (0, 0) [(0, defaultChannel)],
                                   synthChannelIndex = 0,
                                   synthFrameSize = 10000,
@@ -71,6 +73,7 @@ close s = readIORef s >>= simpleFree . synthPulse
 
 play :: SynthRef -> IO ()
 play s = do synth <- readIORef s
+            putStrLn $ "play " ++ show synth
             let pulse = synthPulse synth
                 writeSample sample synth
                     | sample < synthFrameSize synth
@@ -86,13 +89,13 @@ play s = do synth <- readIORef s
             simpleDrain pulse
 
 mix :: Synthesizer -> (Synthesizer, Double, Double)
-mix synth = let (channels, l, r) = foldl (\(channels, l, r) channel ->
+mix synth = let channels = synthChannels synth
+                (channels', l, r) = foldl (\(cs, l, r) (idx, channel) ->
                                            let (channel', l', r') = generate channel
-                                           in (channel' : channels, l + l', r + r')
-                                         ) ([], 0, 0) $ elems $ synthChannels synth
-                channels' = array (0, length channels - 1) $
-                            zip [(length channels - 1)..0] channels
-            in (synth { synthChannels = channels' }, l, r)
+                                           in ((idx, channel') : cs, l + l', r + r')
+                                         ) ([], 0, 0) $ assocs channels
+                channels'' = array (bounds channels) channels'
+            in (synth { synthChannels = channels'' }, l, r)
 
 generate :: Channel -> (Channel, Double, Double)
 generate = osc . adsr
@@ -110,9 +113,12 @@ generate = osc . adsr
                          c { chLevel = chSustain c + (chLevel c - chSustain c) * chDecay c }
           osc :: Channel -> (Channel, Double, Double)
           osc c = let c' = c { chPhase = chPhase c + chSpeed c }
-                      c'' | chWave c' /= Noise = c' { chPhase = chPhase c' -
-                                                                fromIntegral (truncate $ chPhase c') }
-                          | otherwise = c'
+                      c'' = case chWave c' of 
+                              Noise ->
+                                  c'
+                              _ ->
+                                  c' { chPhase = chPhase c' -
+                                                 fromIntegral (truncate $ chPhase c') }
                       (amp, c''') = case chWave c'' of
                                       Pulse ->
                                           (if chPhase c'' < chPulseWidth c''

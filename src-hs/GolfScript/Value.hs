@@ -15,7 +15,7 @@ data GolfValue = GolfComment String
                deriving (Show, Eq)
 
 serialize :: GolfValue -> String
-serialize (GolfComment c) = c ++ "\n"
+serialize (GolfComment c) = "#" ++ c ++ "\n"
 serialize (GolfNumber n) = show n
 serialize (GolfArray vs) = "[" ++ intercalate " " (map serialize vs) ++ "]"
 serialize (GolfString s) = "'" ++ s ++ "'"
@@ -45,6 +45,7 @@ data VM = VM { vmStack :: [GolfValue],
                vmVars :: Map String GolfValue,
                vmInAssignment :: Bool
              }
+        deriving (Show)
 type Interpreter a = StateT VM IO a
 
   

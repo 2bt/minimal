@@ -25,8 +25,7 @@ boot s = GolfBuiltin $
                   synthCall identifier $ \synth ->
                   do let channels = synthChannels synth
                          idx = synthChannelIndex synth
-                         channel = trace ("channel: " ++ show idx ++ "\nchannel: " ++ show channel) $
-                                   channels ! idx
+                         channel = channels ! idx
                      channel' <- f channel
                      return $ synth { synthChannels = channels // [(idx, channel')] }
                      
@@ -63,10 +62,14 @@ boot s = GolfBuiltin $
                  return $ channel { chPanLeft = sqrt (1 - pan'), 
                                     chPanRight = sqrt pan' }
 
+            channelCall "pitch" $ \channel ->
+              do GolfNumber pitch <- vmPop
+                 return $ channel { chSpeed = (440.0 / fromIntegral mixRate) * (2 ** ((fromIntegral pitch - (9 + 12 * 4) * 16) * (1.0 / (12 * 16)))) }
+
             channelCall "attack" $ \channel ->
               do GolfNumber attack <- vmPop
                  let f = fromIntegral attack * 2.5 / 100.0
-                 return $ channel { chAttack = 1 / (f * f * 48000 * 0.0001) }
+                 return $ channel { chAttack = 1 / (f * f * fromIntegral mixRate + 0.0001) }
             
             channelCall "sustain" $ \channel ->
               do GolfNumber sustain <- vmPop
@@ -75,12 +78,12 @@ boot s = GolfBuiltin $
             channelCall "decay" $ \channel ->
               do GolfNumber decay <- vmPop
                  let f = fromIntegral decay * 1.5 / 100.0
-                 return $ channel { chDecay = 1 - 1 / (f * f * 48000 + 1) }
+                 return $ channel { chDecay = 1 - 1 / (f * f * fromIntegral mixRate + 1) }
             
             channelCall "release" $ \channel ->
               do GolfNumber rel <- vmPop
                  let f = fromIntegral rel * 1.5 / 100.0
-                 return $ channel { chRelease = 1 - 1 / (f * f * 48000 + 1) }
+                 return $ channel { chRelease = 1 - 1 / (f * f * fromIntegral mixRate + 1) }
             
             channelCall "pulse" $ \channel ->
               do GolfNumber pulse <- vmPop
