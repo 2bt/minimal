@@ -113,9 +113,12 @@ generate = osc . adsr
                          c { chLevel = chSustain c + (chLevel c - chSustain c) * chDecay c }
           osc :: Channel -> (Channel, Double, Double)
           osc c = let c' = c { chPhase = chPhase c + chSpeed c }
-                      c'' | chWave c' /= Noise = c' { chPhase = chPhase c' -
-                                                                fromIntegral (truncate $ chPhase c') }
-                          | otherwise = c'
+                      c'' = case chWave c' of 
+                              Noise ->
+                                  c'
+                              _ ->
+                                  c' { chPhase = chPhase c' -
+                                                 fromIntegral (truncate $ chPhase c') }
                       (amp, c''') = case chWave c'' of
                                       Pulse ->
                                           (if chPhase c'' < chPulseWidth c''
