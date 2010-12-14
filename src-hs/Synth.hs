@@ -89,13 +89,13 @@ play s = do synth <- readIORef s
             simpleDrain pulse
 
 mix :: Synthesizer -> (Synthesizer, Double, Double)
-mix synth = let (channels, l, r) = foldl (\(channels, l, r) channel ->
+mix synth = let channels = synthChannels synth
+                (channels', l, r) = foldl (\(cs, l, r) (idx, channel) ->
                                            let (channel', l', r') = generate channel
-                                           in (channel' : channels, l + l', r + r')
-                                         ) ([], 0, 0) $ elems $ synthChannels synth
-                channels' = array (0, length channels - 1) $
-                            zip [(length channels - 1)..0] channels
-            in (synth { synthChannels = channels' }, l, r)
+                                           in ((idx, channel') : cs, l + l', r + r')
+                                         ) ([], 0, 0) $ assocs channels
+                channels'' = array (bounds channels) channels'
+            in (synth { synthChannels = channels'' }, l, r)
 
 generate :: Channel -> (Channel, Double, Double)
 generate = osc . adsr
