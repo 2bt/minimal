@@ -13,7 +13,7 @@ original author: smt (1994)"puts
 
 	30	sustain
 	15	decay
-	-2	panning
+	0	panning
 
 } : init_bass ;
 
@@ -259,12 +259,13 @@ original author: smt (1994)"puts
 
 ####### lead #######
 {
-	100	pulse
 	1	wave
+	1	pulse
 
-	80	sustain
-	-10 panning
-	40	release
+	20	decay
+	70	sustain
+	-7	panning
+	30	release
 
 } : init_lead ;
 
@@ -273,13 +274,13 @@ original author: smt (1994)"puts
 	{}
 	{ D_5 pitch m_none 30 volume }
 	{ play D_5 pitch 100 volume }
-	{ [D_5 10 100] m_vibrato }
+	{ [D_5 6 100] m_vibrato }
 	{ [D_5 0 4] m_pitch_slide }
 	{ play C_5 pitch m_none }
 	{ D_5 pitch 30 volume }
 	{}
 	{ play Ds5 pitch 100 volume }
-	{ [Ds5 10 100] m_vibrato }
+	{ [Ds5 6 100] m_vibrato }
 	{ [Ds5 0 2] m_pitch_slide }
 	{ play D_5 pitch m_none }
 	{ Ds5 pitch 30 volume }
@@ -290,14 +291,14 @@ original author: smt (1994)"puts
 	{ [Ds5 0 2] m_pitch_slide }
 	{ play D_5 pitch m_none }
 	{ play C_5 pitch }
-	{ D_5 pitch 30 volume }
 	{}
+	{ D_5 pitch 30 volume }
 	{ play G_4 pitch 100 volume }
-	{ [G_4 10 100] m_vibrato }
+	{ [G_4 6 100] m_vibrato }
 	{ [G_4 0 3] m_pitch_slide }
 	{ play D_5 pitch m_none }
-	{ G_4 pitch 30 volume }
 	{}
+	{ G_4 pitch 30 volume }
 	{ play Ds5 pitch 100 volume }
 	{ [Ds5 F_5 2] m_pitch_slide }
 	{ play F_5 pitch m_none }
@@ -342,13 +343,13 @@ original author: smt (1994)"puts
 	{}
 	{ C_5 pitch m_none 30 volume }
 	{ play C_5 pitch 100 volume }
-	{ [C_5 10 100] m_vibrato }
+	{ [C_5 6 100] m_vibrato }
 	{ [C_5 F_5 8] m_pitch_slide }
 	{ play F_5 pitch m_none }
 	{ C_5 pitch 30 volume }
 	{}
 	{ play Fs5 pitch 100 volume }
-	{ [Fs5 10 100] m_vibrato }
+	{ [Fs5 6 100] m_vibrato }
 	{ [Fs5 0 2] m_pitch_slide }
 	{ play F_5 pitch m_none }
 	{ Fs5 pitch 30 volume }
@@ -359,14 +360,14 @@ original author: smt (1994)"puts
 	{ [F_5 Fs5 2] m_pitch_slide }
 	{ play Fs5 pitch m_none }
 	{ play F_5 pitch }
-	{ Fs5 pitch 30 volume }
 	{}
+	{ Fs5 pitch 30 volume }
 	{ play Cs5 pitch 100 volume }
-	{ [Cs5 10 100] m_vibrato }
+	{ [Cs5 6 100] m_vibrato }
 	{ [Cs5 0 3] m_pitch_slide }
 	{ play C_5 pitch m_none }
-	{ Cs5 pitch 30 volume }
 	{}
+	{ Cs5 pitch 30 volume }
 	{ play Cs5 pitch 100 volume }
 	{ [Cs5 Ds5 2] m_pitch_slide }
 	{ play Ds5 pitch m_none }
@@ -443,7 +444,7 @@ lead3 make_echo : echo3 ;
 		{	30		sustain
 			30		decay
 			5		release
-			4		panning
+			-5		panning
 			play
 		  3 wave G_5 pitch }
 		{ 3 wave C_5 pitch }
@@ -463,7 +464,7 @@ lead3 make_echo : echo3 ;
 		{	30		sustain
 			40		decay
 			19		release
-			-8		panning
+			20		panning
 			play
 		  3 wave C_7 pitch }
 		{}
@@ -544,16 +545,22 @@ lead3 make_echo : echo3 ;
 ####### patterns #######
 
 [
-	[ bass0 drum0 _ _ _ ]
 
-	[ bass1 drum1 chord1 _ _ ]
-	[ bass2 drum1 chord2 _ _ ]
-	[ bass1 drum1 chord1 _ _ ]
-	[ bass3 drum2 chord3 _ _ ]
+#	[ lead1 echo1 ]
+#	[ lead2 echo2 ]
+#	[ lead1 echo1 ]
+#	[ lead3 echo3 ]
+
+	[ bass0 drum0 _ _ _ ]
 
 	[ bass1 drum1 chord1 lead1 echo1 ]
 	[ bass2 drum1 chord2 lead2 echo2 ]
 	[ bass1 drum1 chord1 lead1 echo1 ]
 	[ bass3 drum2 chord3 lead3 echo3 ]
+
+	[ bass1 drum1 chord1 _ _ ]
+	[ bass2 drum1 chord2 _ _ ]
+	[ bass1 drum1 chord1 _ _ ]
+	[ bass3 drum2 chord3 _ _ ]
 
 ] : patterns ;
