@@ -164,7 +164,7 @@ original author: smt (1994)"puts
 	0	wave
 	30	pulse
 	60	volume
-	30	release
+	25	release
 	10	panning
 
 } : init_chord ;
@@ -545,6 +545,12 @@ lead3 make_echo : echo3 ;
 
 [
 	[ bass0 drum0 _ _ _ ]
+
+	[ bass1 drum1 chord1 _ _ ]
+	[ bass2 drum1 chord2 _ _ ]
+	[ bass1 drum1 chord1 _ _ ]
+	[ bass3 drum2 chord3 _ _ ]
+
 	[ bass1 drum1 chord1 lead1 echo1 ]
 	[ bass2 drum1 chord2 lead2 echo2 ]
 	[ bass1 drum1 chord1 lead1 echo1 ]
