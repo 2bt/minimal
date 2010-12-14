@@ -25,8 +25,7 @@ boot s = GolfBuiltin $
                   synthCall identifier $ \synth ->
                   do let channels = synthChannels synth
                          idx = synthChannelIndex synth
-                         channel = trace ("channel: " ++ show idx ++ "\nchannel: " ++ show channel) $
-                                   channels ! idx
+                         channel = channels ! idx
                      channel' <- f channel
                      return $ synth { synthChannels = channels // [(idx, channel')] }
                      

@@ -12,7 +12,7 @@ runFile :: S.SynthRef -> String -> IO ()
 runFile s fn = do code <- parseFile fn
                   let lööp vm = do vm' <- exec vm [GolfToken "tick"]
                                    S.play s
-                                   --lööp vm'
+                                   lööp vm'
                   exec newVM (boot s : code) >>= lööp
                   
 
