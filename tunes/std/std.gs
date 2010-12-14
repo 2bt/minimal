@@ -1,8 +1,13 @@
 # helper
 {{[\].~>=}*}:min;
 {{[\].~<=}*}:max;
+
 {1 state}:play;
 {0 state}:stop;
+{ [ {} ] * }	: rows;
+128 rows		: _ ;
+
+
 
 # generate note names
 [ "C_CsD_DsE_F_FsG_GsA_AsB_" 2 / 12 * 120 , ] zip { . 1 = 16 * \ ~ 12 / + { : } \ + ~ ; } /
@@ -43,7 +48,6 @@
 } : tick ;
 
 
-
 ####### macros #######
 {[\\]\;} : macro ;
 
@@ -56,29 +60,26 @@
 {
 	.,ticks_per_row\/("."*{}+%{(.pitch+}
 	macro
-}						: m_arpeggio ;		# [ pitch ... ]
-
-
-{	{
-		[~.@+\]
-		.~;<{[~;;.0]}*
-		.1=pitch
-	} macro
-}						: m_pitch_up ; 		# [ target_pitch source_pitch speed ]
-
+}											: m_arpeggio ;
+											# [ pitch ... ]
 
 {	{
-		[~.@+\]
-		.~;>{[~;;.0]}*
-		.1=pitch
+		.~;<{
+			.~\;+\(;+
+			.~;>{[~;\;.0]}*
+		}*
+		.~;>{
+			.~\;-\(;+
+			.~;<{[~;\;.0]}*
+		}*
+		.0=pitch
 	} macro
-}						: m_pitch_down ;	# [ target_pitch source_pitch speed ]
-
+}											: m_pitch_slide ;
+											# [ pitch target_pitch speed ]
 
 {	0 + {
 		)\.2=@++...3=sin\1=*1000/\0=+pitch
 	} macro
-}						: m_vibrato ;		# [ pitch amplitude speed ]
-
-
+}											: m_vibrato ;
+											# [ pitch amplitude speed ]
 

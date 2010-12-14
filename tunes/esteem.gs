@@ -178,9 +178,6 @@
 
 ####### patterns #######
 
-{ [ {} ] * }	: rows;
-128 rows		: _ ;
-
 [
 	[ sub_bass1	_		_			_		_		]
 	[ sub_bass1	_		_			beat1	_		]

@@ -10,7 +10,7 @@
 #	30	attack
 	70	release
 	20	panning
-#	0	volume
+	0	volume
 
 } : lead_init ;
 
@@ -78,7 +78,7 @@
 	{}
 	{ stop }
 	{}
-	{ play [ C_3 As2 2 ] m_pitch_up }
+	{ play [ As2 C_3 2 ] m_pitch_slide }
 	{}
 	{}
 	{}
@@ -88,7 +88,7 @@
 	{ stop }
 	{ play C_2 pitch }
 	{ stop }
-	{ play [ Ds2 C_2 3 ] m_pitch_up }
+	{ play [ C_2 Ds2 3 ] m_pitch_slide }
 	{}
 	{}
 	{ stop }
