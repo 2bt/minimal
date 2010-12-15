@@ -104,6 +104,12 @@ vmMul = do (a, b) <- ordered
                take (length a' * b') $ cycle a'
              (GolfBlock a', GolfNumber b') ->
                mapM_ (const $ run a') [1..b']
+             (GolfBlock a', GolfArray b') ->
+               do vmPush (head b')
+                  mapM_ (\v ->
+                             do vmPush v
+                                run a'
+                        ) (tail b')
              _ ->
                error $ "Cannot mul " ++ show a ++ " & " ++ show b
 
