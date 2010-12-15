@@ -7,6 +7,7 @@ import Data.Array
 import Data.Bits
 import Data.Word
 import Control.Monad.State.Lazy
+import Data.List (foldl')
 
 
 data ChannelState = Release | Attack | Hold
@@ -62,7 +63,7 @@ mixRate = 48000
 
 new :: IO SynthRef
 new = do pulse <- simpleNew Nothing "minimal" Play Nothing "minimal synthesizer with golfscript interpreter"
-                  (SampleSpec (S16 LittleEndian) mixRate 2) Nothing Nothing
+                  (SampleSpec (F32 LittleEndian) mixRate 2) Nothing Nothing
          newIORef $ Synthesizer { synthChannels = array (0, 0) [(0, defaultChannel)],
                                   synthChannelIndex = 0,
                                   synthFrameSize = 10000,
@@ -76,15 +77,12 @@ play :: SynthRef -> IO ()
 play s = do synth <- readIORef s
             putStrLn $ "play " ++ show synth
             let pulse = synthPulse synth
-                writeSample sample synth
-                    | sample < synthFrameSize synth
-                        = do let (synth', l, r) = mix synth
-                             simpleWrite pulse [truncate $ l * 6000,
-                                                truncate $ r * 6000 :: Word16]
-                             writeSample (sample + 1) synth'
-                    | otherwise
-                        = return synth
-            synth' <- writeSample 0 synth
+                (synth', samples) = foldl' (\(synth, samples) _ ->
+                                                let (synth', l, r) = mix synth
+                                                in (synth', samples ++ [l, r])
+                                           ) (synth, []) [1..(synthFrameSize synth)]
+            putStrLn $ show (length samples) ++ " samples"
+            simpleWrite pulse samples
             writeIORef s synth'
             simpleDrain pulse
 
