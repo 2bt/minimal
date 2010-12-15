@@ -158,11 +158,21 @@ vmLess = do (a, b) <- ordered
             case (a, b) of
               (GolfNumber a', GolfNumber b') ->
                 vmPush $ golfFromBool $ a' < b'
+              (GolfArray a', GolfNumber b') 
+                | b' >= 0 ->
+                    vmPush $ GolfArray $ take b' a'
+                | b' < 0 ->
+                    vmPush $ GolfArray $ take (length a' + b') a'
 
 vmGreater = do (a, b) <- ordered
                case (a, b) of
                  (GolfNumber a', GolfNumber b') ->
                      vmPush $ golfFromBool $ a' > b'
+                 (GolfArray a', GolfNumber b')
+                   | b' >= 0 ->
+                       vmPush $ GolfArray $ drop b' a'
+                   | b' < 0 ->
+                       vmPush $ GolfArray $ drop (length a' + b') a'
 
 vmTilde = do v <- vmPop
              case v of
