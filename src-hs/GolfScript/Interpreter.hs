@@ -303,8 +303,8 @@ run :: [GolfValue] -> Interpreter ()
 run = mapM_ (\v ->
                  do liftIO $ putStrLn $ show v
                     run' v
-                    --vm <- get
-                    --liftIO $ putStrLn $ "stack: " ++ concatMap serialize (vmStack vm)
+                    vm <- get
+                    liftIO $ putStrLn $ "stack: " ++ concatMap serialize (vmStack vm)
             )
 
 run' :: GolfValue -> Interpreter ()
@@ -320,12 +320,14 @@ run' (GolfToken token) = do vm <- get
                                      vmPush v
                               False ->
                                   case Map.lookup token $ vmVars vm of
-                                    Just v -> do liftIO (putStrLn $ "call " ++ token)
-                                                 case v of
-                                                   GolfBlock vs -> run vs
-                                                   _ -> run' v
-                                    Nothing -> error $ "Token undefined: " ++ token ++
-                                               " stack: " ++ intercalate " " (map serialize $ vmStack vm)
+                                    Just v -> 
+                                        case v of
+                                          GolfBlock vs -> run vs
+                                          _ -> run' v
+                                    Nothing -> 
+                                        error $ "Token undefined: " ++ token ++
+                                                   " stack: " ++
+                                                   intercalate " " (map serialize $ vmStack vm)
 run' (GolfBuiltin b) = b
 run' (GolfArray vs) = do vm <- get
                          let stack = vmStack vm

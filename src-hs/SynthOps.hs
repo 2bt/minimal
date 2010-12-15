@@ -3,7 +3,6 @@ module SynthOps where
 import Control.Monad.State.Lazy
 import Data.IORef
 import Data.Array
-import Debug.Trace
 
 import GolfScript.Value
 import GolfScript.Interpreter
