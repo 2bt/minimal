@@ -223,11 +223,29 @@ vmDec = do a <- vmPop
            case a of
              GolfNumber a' ->
                vmPush $ GolfNumber $ a' - 1
+             GolfArray a' ->
+               do vmPush $ GolfArray $ tail a'
+                  vmPush $ head a'
+             GolfString a' ->
+               do vmPush $ GolfString $ tail a'
+                  vmPush $ GolfNumber $ ord $ head a'
+             GolfBlock a' ->
+               do vmPush $ GolfBlock $ tail a'
+                  vmPush $ head a'
 
 vmInc = do a <- vmPop
            case a of
              GolfNumber a' ->
                vmPush $ GolfNumber $ a' + 1
+             GolfArray a' ->
+               do vmPush $ GolfArray $ init a'
+                  vmPush $ last a'
+             GolfString a' ->
+               do vmPush $ GolfString $ init a'
+                  vmPush $ GolfNumber $ ord $ last a'
+             GolfBlock a' ->
+               do vmPush $ GolfBlock $ init a'
+                  vmPush $ last a'
 
 vmDoWhile = do GolfBlock vs <- vmPop
                let r = do run vs
