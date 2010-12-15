@@ -78,16 +78,15 @@ close s = readIORef s >>= simpleFree . synthPulse
 
 play :: SynthRef -> IO ()
 play s = do synth <- readIORef s
-            putStrLn $ "play " ++ show synth
+            --putStrLn $ "play " ++ show synth
             let pulse = synthPulse synth
                 (synth', samples) = foldl' (\(synth, samples) _ ->
                                                 let (synth', l, r) = {-# SCC "mix" #-} mix synth
                                                 in (synth', {-# SCC "sampleConcat" #-} samples |> l |> r)
                                            ) (synth, Seq.empty) [1..(synthFrameSize synth)]
-            putStrLn $ show (Seq.length samples) ++ 
+            {-putStrLn $ show (Seq.length samples) ++ 
                          " samples, min: " ++ show (F.minimum samples) ++ 
-                         ", max: " ++ show (F.maximum samples)
-            --simpleDrain pulse
+                         ", max: " ++ show (F.maximum samples)-}
             simpleWrite pulse $ F.toList samples
             --putStrLn $ show $ F.toList samples
             writeIORef s synth'
