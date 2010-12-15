@@ -81,7 +81,7 @@ play s = do synth <- readIORef s
                              putStrLn $ show synth'
                              simpleWrite pulse [truncate $ l * 6000,
                                                 truncate $ r * 6000 :: Word16]
-                             writeSample (sample + 1) synth
+                             writeSample (sample + 1) synth'
                     | otherwise
                         = return synth
             synth' <- writeSample 0 synth
