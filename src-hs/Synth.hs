@@ -18,20 +18,20 @@ data ChannelState = Release | Attack | Hold
 data ChannelWave = Pulse | Triangle | Sine | Noise
                    deriving (Show, Eq, Ord)
 
-data Channel = Channel { chPhase :: Double,
+data Channel = Channel { chPhase :: Float,
                          chShiftReg :: Word32,
-                         chSpeed :: Double,
-                         chVolume :: Double,
-                         chPanLeft :: Double,
-                         chPanRight :: Double,
-                         chAttack :: Double,
-                         chDecay :: Double,
-                         chSustain :: Double,
-                         chRelease :: Double,
+                         chSpeed :: Float,
+                         chVolume :: Float,
+                         chPanLeft :: Float,
+                         chPanRight :: Float,
+                         chAttack :: Float,
+                         chDecay :: Float,
+                         chSustain :: Float,
+                         chRelease :: Float,
                          chState :: ChannelState,
-                         chLevel :: Double,
+                         chLevel :: Float,
                          chWave :: ChannelWave,
-                         chPulseWidth :: Double
+                         chPulseWidth :: Float
                        }
              deriving (Show)
 
@@ -46,7 +46,7 @@ defaultChannel = Channel { chPhase = 0,
                            chSustain = 50,
                            chRelease = 2,
                            chWave = Pulse,
-                           chPulseWidth = 50,
+                           chPulseWidth = 0.5,
                            chState = Release,
                            chLevel = 0
                          }
@@ -87,11 +87,12 @@ play s = do synth <- readIORef s
             putStrLn $ show (Seq.length samples) ++ 
                          " samples, min: " ++ show (F.minimum samples) ++ 
                          ", max: " ++ show (F.maximum samples)
-            simpleDrain pulse
+            --simpleDrain pulse
             simpleWrite pulse $ F.toList samples
+            --putStrLn $ show $ F.toList samples
             writeIORef s synth'
 
-mix :: Synthesizer -> (Synthesizer, Double, Double)
+mix :: Synthesizer -> (Synthesizer, Float, Float)
 mix synth = let channels = synthChannels synth
                 (channels', l, r) = foldl (\(cs, l, r) (idx, channel) ->
                                            let ((l', r'), channel') = runState generate channel
@@ -100,7 +101,7 @@ mix synth = let channels = synthChannels synth
                 channels'' = array (bounds channels) channels'
             in (synth { synthChannels = channels'' }, l, r)
 
-generate :: State Channel (Double, Double)
+generate :: State Channel (Float, Float)
 generate = adsr >> osc
     where adsr :: State Channel ()
           adsr = do c <- get
@@ -115,7 +116,7 @@ generate = adsr >> osc
                             else put $ c { chLevel = level }
                      Hold ->
                          put $ c { chLevel = chSustain c + (chLevel c - chSustain c) * chDecay c }
-          osc :: State Channel (Double, Double)
+          osc :: State Channel (Float, Float)
           osc = do c <- get
                    put $ c { chPhase = chPhase c + chSpeed c }
                    
@@ -138,7 +139,7 @@ generate = adsr >> osc
                             Sine ->
                                 return $ sin $ chPhase c * 2 * pi
                             Noise ->
-                                do let r :: Word32 -> Word32 -> Double -> (Word32, Word32, Double)
+                                do let r :: Word32 -> Word32 -> Float -> (Word32, Word32, Float)
                                        r s b phase
                                            | phase > 0.1 =
                                                let phase' = phase - 0.1
