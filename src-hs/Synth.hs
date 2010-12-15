@@ -8,6 +8,9 @@ import Data.Bits
 import Data.Word
 import Control.Monad.State.Lazy
 import Data.List (foldl')
+import Data.Sequence (Seq, (|>))
+import qualified Data.Sequence as Seq
+import qualified Data.Foldable as F
 
 
 data ChannelState = Release | Attack | Hold
@@ -78,13 +81,15 @@ play s = do synth <- readIORef s
             putStrLn $ "play " ++ show synth
             let pulse = synthPulse synth
                 (synth', samples) = foldl' (\(synth, samples) _ ->
-                                                let (synth', l, r) = mix synth
-                                                in (synth', samples ++ [l, r])
-                                           ) (synth, []) [1..(synthFrameSize synth)]
-            putStrLn $ show (length samples) ++ " samples"
-            simpleWrite pulse samples
-            writeIORef s synth'
+                                                let (synth', l, r) = {-# SCC "mix" #-} mix synth
+                                                in (synth', {-# SCC "sampleConcat" #-} samples |> l |> r)
+                                           ) (synth, Seq.empty) [1..(synthFrameSize synth)]
+            putStrLn $ show (Seq.length samples) ++ 
+                         " samples, min: " ++ show (F.minimum samples) ++ 
+                         ", max: " ++ show (F.maximum samples)
             simpleDrain pulse
+            simpleWrite pulse $ F.toList samples
+            writeIORef s synth'
 
 mix :: Synthesizer -> (Synthesizer, Double, Double)
 mix synth = let channels = synthChannels synth
