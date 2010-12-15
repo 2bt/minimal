@@ -79,7 +79,6 @@ play s = do synth <- readIORef s
                 writeSample sample synth
                     | sample < synthFrameSize synth
                         = do let (synth', l, r) = mix synth
-                             putStrLn $ show synth'
                              simpleWrite pulse [truncate $ l * 6000,
                                                 truncate $ r * 6000 :: Word16]
                              writeSample (sample + 1) synth'
