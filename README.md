@@ -10,6 +10,8 @@ Try it out:
 	$ make
 	$ ./minimal tunes/esteem.gs
 
+Btw, you need `gdc` and `libsdl-dev` for this to compile.
+
 
 ### Built-ins ###
 
