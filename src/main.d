@@ -279,12 +279,24 @@ class Synth {
 void main(string[] args) {
 	disable;//TODO: fix this!!!!
 
-	if(args.length < 2) {
-		writefln("usage: %s filename", args[0]);
+	string filename;
+	bool logging = false;
+
+	foreach(a; args[1 .. $]) {
+		if(a == "-l") logging = true;
+		else filename = a;
+	}
+
+	if(!filename) {
+		writefln("usage: %s [-l] filename", args[0]);
 		return;
 	}
-	auto synth = new Synth(args[1], true);
+
+	auto synth = new Synth(filename, logging);
 	readln;
 	delete synth;
 }
+
+
+
 
