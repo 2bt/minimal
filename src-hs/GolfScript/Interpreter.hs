@@ -233,6 +233,10 @@ vmMod = do (a, b) <- ordered
                forM_ b' $ \v -> 
                do vmPush v
                   run a'
+             (GolfBlock a', GolfBlock b') ->
+               forM_ b' $ \v -> 
+               do vmPush v
+                  run a'
              _ ->
                error $ "Cannot % " ++ show a ++ " & " ++ show b
                
@@ -278,7 +282,13 @@ vmZip = do vm <- get
            v <- vmPop
            case v of
              GolfArray a ->
-               do let a' = map (\(GolfArray a') -> a') a
+               do let a' = map (\b ->
+                                 case b of
+                                   GolfArray b' -> b'
+                                   GolfString b' -> map (GolfNumber . ord) b'
+                                   GolfBlock b' -> b'
+                                   _ -> error $ "Cannot transpose of " ++ show b
+                               ) a
                       minLen = minimum $ map length a'
                       a'' = map (take minLen) a'
                       a''' = transpose a''
