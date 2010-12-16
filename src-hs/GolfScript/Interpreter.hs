@@ -337,10 +337,10 @@ newVM = VM { vmStack = [],
         
 run :: [GolfValue] -> Interpreter ()
 run = mapM_ (\v ->
-                 do liftIO $ putStrLn $ show v
+                 do --liftIO $ putStrLn $ show v
                     run' v
-                    vm <- get
-                    liftIO $ putStrLn $ "stack: " ++ concatMap serialize (vmStack vm)
+                    --vm <- get
+                    --liftIO $ putStrLn $ "stack: " ++ concatMap serialize (vmStack vm)
             )
 
 run' :: GolfValue -> Interpreter ()
