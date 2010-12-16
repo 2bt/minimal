@@ -42,6 +42,7 @@ typePriority (GolfBuiltin _) = 4
 
 
 data VM = VM { vmStack :: [GolfValue],
+               vmBrackets :: [Int],
                vmVars :: Map String GolfValue,
                vmInAssignment :: Bool
              }

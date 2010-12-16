@@ -49,10 +49,11 @@ vmPop :: Interpreter GolfValue
 vmPop = do vm <- get
            case vmStack vm of
              v : stack ->
-               do put $ vm { vmStack = stack }
+               do put $ repairBrackets $ vm { vmStack = stack }
                   return v
              [] ->
                error "Popping from empty stack"
+    where repairBrackets vm = vm { vmBrackets = map (min $ length $ vmStack vm) $ vmBrackets vm }
 
 vmPush :: GolfValue -> Interpreter ()
 vmPush v = do vm <- get
@@ -158,11 +159,21 @@ vmLess = do (a, b) <- ordered
             case (a, b) of
               (GolfNumber a', GolfNumber b') ->
                 vmPush $ golfFromBool $ a' < b'
+              (GolfArray a', GolfNumber b') 
+                | b' >= 0 ->
+                    vmPush $ GolfArray $ take b' a'
+                | b' < 0 ->
+                    vmPush $ GolfArray $ take (length a' + b') a'
 
 vmGreater = do (a, b) <- ordered
                case (a, b) of
                  (GolfNumber a', GolfNumber b') ->
                      vmPush $ golfFromBool $ a' > b'
+                 (GolfArray a', GolfNumber b')
+                   | b' >= 0 ->
+                       vmPush $ GolfArray $ drop b' a'
+                   | b' < 0 ->
+                       vmPush $ GolfArray $ drop (length a' + b') a'
 
 vmTilde = do v <- vmPop
              case v of
@@ -292,6 +303,7 @@ vmPrint = do v <- vmPop
 
 newVM :: VM
 newVM = VM { vmStack = [],
+             vmBrackets = [],
              vmVars = Map.fromList [(":", GolfBuiltin vmColon),
                                     ("+", GolfBuiltin vmPlus),
                                     ("-", GolfBuiltin vmMinus),
@@ -355,12 +367,16 @@ run' (GolfToken token) = do vm <- get
 run' (GolfBuiltin b) = b
 run' (GolfArray vs) = do vm <- get
                          let stack = vmStack vm
-                         put $ vm { vmStack = [] }
+                         put $ vm { vmBrackets = length stack : vmBrackets vm }
+                         
                          run vs
+                         
                          vm' <- get
                          let stack' = vmStack vm'
-                         put $ vm' { vmStack = stack }
-                         vmPush $ GolfArray $ reverse stack'
+                             bracket : brackets = vmBrackets vm'
+                             (as, stack'') = splitAt (length stack' - bracket) $ vmStack vm'
+                         put $ vm' { vmBrackets = brackets, 
+                                     vmStack = GolfArray as : stack'' }
 run' v = vmPush v
 
 exec :: VM -> [GolfValue] -> IO VM
