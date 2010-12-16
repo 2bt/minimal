@@ -228,8 +228,12 @@ vmInspect = do a <- vmPop
 vmMod = do (a, b) <- ordered
            case (a, b) of
              (GolfNumber a', GolfNumber b') ->
-               vmPush $ GolfNumber $ b' `mod` a'
+               vmPush $ GolfNumber $ a' `mod` b'
              (GolfBlock a', GolfArray b') ->
+               forM_ b' $ \v -> 
+               do vmPush v
+                  run a'
+             (GolfBlock a', GolfBlock b') ->
                forM_ b' $ \v -> 
                do vmPush v
                   run a'
@@ -278,7 +282,13 @@ vmZip = do vm <- get
            v <- vmPop
            case v of
              GolfArray a ->
-               do let a' = map (\(GolfArray a') -> a') a
+               do let a' = map (\b ->
+                                 case b of
+                                   GolfArray b' -> b'
+                                   GolfString b' -> map (GolfNumber . ord) b'
+                                   GolfBlock b' -> b'
+                                   _ -> error $ "Cannot transpose of " ++ show b
+                               ) a
                       minLen = minimum $ map length a'
                       a'' = map (take minLen) a'
                       a''' = transpose a''
@@ -337,10 +347,10 @@ newVM = VM { vmStack = [],
         
 run :: [GolfValue] -> Interpreter ()
 run = mapM_ (\v ->
-                 do liftIO $ putStrLn $ show v
+                 do --liftIO $ putStrLn $ show v
                     run' v
-                    vm <- get
-                    liftIO $ putStrLn $ "stack: " ++ concatMap serialize (vmStack vm)
+                    --vm <- get
+                    --liftIO $ putStrLn $ "stack: " ++ concatMap serialize (vmStack vm)
             )
 
 run' :: GolfValue -> Interpreter ()
