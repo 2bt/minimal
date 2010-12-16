@@ -228,7 +228,7 @@ vmInspect = do a <- vmPop
 vmMod = do (a, b) <- ordered
            case (a, b) of
              (GolfNumber a', GolfNumber b') ->
-               vmPush $ GolfNumber $ b' `mod` a'
+               vmPush $ GolfNumber $ a' `mod` b'
              (GolfBlock a', GolfArray b') ->
                forM_ b' $ \v -> 
                do vmPush v
