@@ -376,7 +376,7 @@ run' (GolfArray vs) = do vm <- get
                              bracket : brackets = vmBrackets vm'
                              (as, stack'') = splitAt (length stack' - bracket) $ vmStack vm'
                          put $ vm' { vmBrackets = brackets, 
-                                     vmStack = GolfArray as : stack'' }
+                                     vmStack = GolfArray (reverse as) : stack'' }
 run' v = vmPush v
 
 exec :: VM -> [GolfValue] -> IO VM
