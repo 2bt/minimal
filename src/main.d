@@ -267,14 +267,15 @@ class Synth {
 		float l, r;
 		for(int m = 0; m < len >> 2; m++, buffer += 2) {
 			synth.mix(l, r);
-			buffer[0] = cast(short)(l * 6000);
-			buffer[1] = cast(short)(r * 6000);
+			buffer[0] = cast(short)(l * 7000);
+			buffer[1] = cast(short)(r * 7000);
 			// logging
 			if(synth.log)
 				synth.log.write(buffer[0], buffer[1]);
 		}
 	}
 }
+
 
 void main(string[] args) {
 	disable;//TODO: fix this!!!!
@@ -296,7 +297,5 @@ void main(string[] args) {
 	readln;
 	delete synth;
 }
-
-
 
 

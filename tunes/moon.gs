@@ -79,11 +79,11 @@
 	{ stop }
 	{}
 	{ play [ As2 C_3 2 ] m_pitch_slide }
+	{ [ C_3 12 100 ] m_vibrato }
 	{}
 	{}
 	{}
 	{ stop }
-	{}
 	{ play Ds3 pitch m_none }
 	{ stop }
 	{ play C_2 pitch }

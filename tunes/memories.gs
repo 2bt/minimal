@@ -553,14 +553,14 @@ lead3 make_echo : echo3 ;
 
 	[ bass0 drum0 _ _ _ ]
 
-	[ bass1 drum1 chord1 lead1 echo1 ]
-	[ bass2 drum1 chord2 lead2 echo2 ]
-	[ bass1 drum1 chord1 lead1 echo1 ]
-	[ bass3 drum2 chord3 lead3 echo3 ]
-
 	[ bass1 drum1 chord1 _ _ ]
 	[ bass2 drum1 chord2 _ _ ]
 	[ bass1 drum1 chord1 _ _ ]
 	[ bass3 drum2 chord3 _ _ ]
+
+	[ bass1 drum1 chord1 lead1 echo1 ]
+	[ bass2 drum1 chord2 lead2 echo2 ]
+	[ bass1 drum1 chord1 lead1 echo1 ]
+	[ bass3 drum2 chord3 lead3 echo3 ]
 
 ] : patterns ;
