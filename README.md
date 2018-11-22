@@ -7,6 +7,7 @@ Minimal is a very basic software synthesizer controllable via
 [golfscript](http://www.golfscript.com/golfscript/index.html).
 
 Try it out:
+
 	$ make
 	$ ./minimal tunes/esteem.gs
 
